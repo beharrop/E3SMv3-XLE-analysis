@@ -23,7 +23,7 @@ from pathlib import Path
 # Runtime control
 # ---------------------------------------------------------------------------
 
-DRY_RUN = True  # Set to False to actually pull data from tape
+DRY_RUN = False  # Set to False to actually pull data from tape
 
 # ---------------------------------------------------------------------------
 # Configuration
@@ -60,13 +60,29 @@ GROUP_VARIABLES = {
         {"filepath": "post/atm/glb/ts/monthly/10yr/PRECC_{start}_{end}.nc",  "start": "000101", "end": "050012"},
         {"filepath": "post/atm/glb/ts/monthly/10yr/PRECL_{start}_{end}.nc",  "start": "000101", "end": "050012"},
     ],
-    "historical": [
+    "v3.LR.historical": [
+        {"filepath": "post/atm/glb/ts/monthly/5yr/FSNTOA_{start}_{end}.nc", "start": "185001", "end": "202412"},
+        {"filepath": "post/atm/glb/ts/monthly/5yr/FLUT_{start}_{end}.nc",   "start": "185001", "end": "202412"},
+        {"filepath": "post/atm/glb/ts/monthly/5yr/TREFHT_{start}_{end}.nc", "start": "185001", "end": "202412"},
+        {"filepath": "post/atm/glb/ts/monthly/5yr/PRECC_{start}_{end}.nc",  "start": "185001", "end": "202412"},
+        {"filepath": "post/atm/glb/ts/monthly/5yr/PRECL_{start}_{end}.nc",  "start": "185001", "end": "202412"},
+        {"filepath": "archive/atm/hist/v3.LR.historical_{ens}.eam.h1.{YYYY}-{MM}-{DD}-00000.nc", "start": "1985", "end": "2024"},
+    ],
+    "v3.LR.lowECS.historical": [
         {"filepath": "post/atm/glb/ts/monthly/5yr/FSNTOA_{start}_{end}.nc", "start": "185001", "end": "202412"},
         {"filepath": "post/atm/glb/ts/monthly/5yr/FLUT_{start}_{end}.nc",   "start": "185001", "end": "202412"},
         {"filepath": "post/atm/glb/ts/monthly/5yr/TREFHT_{start}_{end}.nc", "start": "185001", "end": "202412"},
         {"filepath": "post/atm/glb/ts/monthly/5yr/PRECC_{start}_{end}.nc",  "start": "185001", "end": "202412"},
         {"filepath": "post/atm/glb/ts/monthly/5yr/PRECL_{start}_{end}.nc",  "start": "185001", "end": "202412"},
         {"filepath": "archive/atm/hist/v3.LR.lowECS.historical_{ens}.eam.h1.{YYYY}-{MM}-{DD}-00000.nc", "start": "1985", "end": "2024"},
+    ],
+    "v3.LR.highECS.historical": [
+        {"filepath": "post/atm/glb/ts/monthly/5yr/FSNTOA_{start}_{end}.nc", "start": "185001", "end": "202412"},
+        {"filepath": "post/atm/glb/ts/monthly/5yr/FLUT_{start}_{end}.nc",   "start": "185001", "end": "202412"},
+        {"filepath": "post/atm/glb/ts/monthly/5yr/TREFHT_{start}_{end}.nc", "start": "185001", "end": "202412"},
+        {"filepath": "post/atm/glb/ts/monthly/5yr/PRECC_{start}_{end}.nc",  "start": "185001", "end": "202412"},
+        {"filepath": "post/atm/glb/ts/monthly/5yr/PRECL_{start}_{end}.nc",  "start": "185001", "end": "202412"},
+        {"filepath": "archive/atm/hist/v3.LR.highECS.historical_{ens}.eam.h1.{YYYY}-{MM}-{DD}-00000.nc", "start": "1985", "end": "2024"},
     ],
     "ssp370": [
         {"filepath": "post/atm/glb/ts/monthly/4yr/FSNTOA_{start}_{end}.nc", "start": "202501", "end": "210012"},
@@ -111,15 +127,15 @@ _SINGLE_SIMULATIONS = {
 # Commented out ssp370 runs for now since we are not using those
 _ENSEMBLE_DEFAULTS = {
     "v3.LR.historical": {
-        "group": "historical",
+        "group": "v3.LR.historical",
         "analysis_dates": ("185001", "201412"),
     },
     "v3.LR.lowECS.historical": {
-        "group": "historical",
+        "group": "v3.LR.lowECS.historical",
         "analysis_dates": ("185001", "201412"),
     },
     "v3.LR.highECS.historical": {
-        "group": "historical",
+        "group": "v3.LR.highECS.historical",
         "analysis_dates": ("185001", "201412"),
     },
     # "v3.LR.ssp370": {
@@ -162,18 +178,25 @@ _ENSEMBLE_MEMBERS = {
             "hpss_template": "/home/b/beharrop/E3SMv3/v3.LR.lowECS/v3.LR.lowECS.historical_{member_id}",
             "members": ["0051", "0091", "0101", "0111", "0121", 
                         "0131", "0141", "0151", "0161", "0171", 
-                        "0181", "0191", "0201", "0211"], 
+                        "0181", "0191", "0201", "0211", "0221"], 
         },
         {
-            "hpss_template": "/home/k/kaizhang/E3SM/E3SMv3/v3.LR.lowECS/v3.LR.lowECS.historical_{member_id}",
-            "members": [],
+            "hpss_template": "/home/c/ctebaldi/E3SMv3LR/XLE/historical_lowECS/v3.LR.lowECS.historical_{member_id}",
+            "members": ["0291", "0301", "0311", "0321"],
         },
     ],
 
     "v3.LR.highECS.historical": [
         {
             "hpss_template": "/home/b/beharrop/E3SMv3/v3.LR.highECS/v3.LR.highECS.historical_{member_id}",
-            "members": ["0051"], 
+            "members": ["0051", "0091", "0101", "0281",
+                        "0301", "0311", "0321"], 
+        },
+        {
+            "hpss_template": "/home/c/ctebaldi/E3SMv3LR/XLE/historical_highECS/v3.LR.highECS.historical_{member_id}",
+            "members": ["0111", "0121", "0131", "0141", "0151",
+                        "0161", "0171", "0181", "0191", "0201",
+                        "0211", "0221", "0231"],
         },
     ],
 
