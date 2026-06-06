@@ -14,7 +14,6 @@ Run:   python manage_data.py
 Test:  set DRY_RUN = True to print zstash commands without executing them.
 """
 
-import os
 import re
 import subprocess
 from pathlib import Path
@@ -45,6 +44,22 @@ DEFAULT_VARIABLES = [
     #{'name': 'PRECT', 'timescale': 'daily', 'domain': 'atm', 'grid': '180x360_aave'},
 ]
 
+# Season name -> (start_month, end_month) used to build seasonal climo filenames.
+# start_month / end_month are two-digit strings (e.g. "01", "12").
+OCEAN_CLIMO_SEASONS = {
+    "ANN": ("01", "12"),
+    "JFM": ("01", "03"),
+    "JAS": ("07", "09"),
+}
+
+ATM_CLIMO_SEASONS = {
+    "ANN": ("01", "12"),
+    "DJF": ("01", "12"),
+    "MAM": ("03", "05"),
+    "JJA": ("06", "08"),
+    "SON": ("09", "11"),
+}
+
 # Per-group variable lists. Key is the group tag used in SIMULATIONS entries.
 # Any group not listed here will fall back to DEFAULT_VARIABLES.
 GROUP_VARIABLES = {
@@ -66,6 +81,22 @@ GROUP_VARIABLES = {
         {"filepath": "post/atm/glb/ts/monthly/5yr/TREFHT_{start}_{end}.nc", "start": "185001", "end": "202412"},
         {"filepath": "post/atm/glb/ts/monthly/5yr/PRECC_{start}_{end}.nc",  "start": "185001", "end": "202412"},
         {"filepath": "post/atm/glb/ts/monthly/5yr/PRECL_{start}_{end}.nc",  "start": "185001", "end": "202412"},
+        {"filepath": "post/atm/glb/ts/monthly/5yr/CLDLOW_{start}_{end}.nc", "start": "185001", "end": "202412"},
+        {"filepath": "post/atm/glb/ts/monthly/5yr/CLDMED_{start}_{end}.nc", "start": "185001", "end": "202412"},
+        {"filepath": "post/atm/glb/ts/monthly/5yr/CLDHGH_{start}_{end}.nc", "start": "185001", "end": "202412"},
+        # Atmosphere seasonal climatology (ANN, DJF, MAM, JJA, SON)
+        {"filepath": "post/atm/180x360_aave/clim/30yr/{casename}_{season}_{start}_{end}_climo.nc", "climo_year_start": "1985", "climo_year_end": "2014", "seasons": ATM_CLIMO_SEASONS},
+        # Ocean masked climatology (sst, sss, mld; seasons: ANN, JFM, JAS)
+        {"filepath": "post/analysis/mpas_analysis/ts_1850-2014_climo_1985-2014/clim/mpas/avg/masked/sst_IcoswISC30E3r5/mpaso_{season}_{start}_{end}_climo.nc", "climo_year_start": "1985", "climo_year_end": "2014", "seasons": OCEAN_CLIMO_SEASONS},
+        {"filepath": "post/analysis/mpas_analysis/ts_1850-2014_climo_1985-2014/clim/mpas/avg/masked/sss_IcoswISC30E3r5/mpaso_{season}_{start}_{end}_climo.nc", "climo_year_start": "1985", "climo_year_end": "2014", "seasons": OCEAN_CLIMO_SEASONS},
+        {"filepath": "post/analysis/mpas_analysis/ts_1850-2014_climo_1985-2014/clim/mpas/avg/masked/mld_IcoswISC30E3r5/mpaso_{season}_{start}_{end}_climo.nc", "climo_year_start": "1985", "climo_year_end": "2014", "seasons": OCEAN_CLIMO_SEASONS},
+        # Ocean remapped climatology
+        {"filepath": "post/analysis/mpas_analysis/ts_1850-2014_climo_1985-2014/clim/mpas/avg/remapped/sst_IcoswISC30E3r5_to_0.5x0.5degree/mpaso_{season}_{start}_{end}_climo.nc", "climo_year_start": "1985", "climo_year_end": "2014", "seasons": OCEAN_CLIMO_SEASONS},
+        {"filepath": "post/analysis/mpas_analysis/ts_1850-2014_climo_1985-2014/clim/mpas/avg/remapped/sst_IcoswISC30E3r5_to_0.5x0.5degree/mpaso_{season}_{start}_{end}_climo_ncremap.nc", "climo_year_start": "1985", "climo_year_end": "2014", "seasons": OCEAN_CLIMO_SEASONS},
+        {"filepath": "post/analysis/mpas_analysis/ts_1850-2014_climo_1985-2014/clim/mpas/avg/remapped/sss_IcoswISC30E3r5_to_0.5x0.5degree/mpaso_{season}_{start}_{end}_climo.nc", "climo_year_start": "1985", "climo_year_end": "2014", "seasons": OCEAN_CLIMO_SEASONS},
+        {"filepath": "post/analysis/mpas_analysis/ts_1850-2014_climo_1985-2014/clim/mpas/avg/remapped/sss_IcoswISC30E3r5_to_0.5x0.5degree/mpaso_{season}_{start}_{end}_climo_ncremap.nc", "climo_year_start": "1985", "climo_year_end": "2014", "seasons": OCEAN_CLIMO_SEASONS},
+        {"filepath": "post/analysis/mpas_analysis/ts_1850-2014_climo_1985-2014/clim/mpas/avg/remapped/mld_IcoswISC30E3r5_to_0.5x0.5degree/mpaso_{season}_{start}_{end}_climo.nc", "climo_year_start": "1985", "climo_year_end": "2014", "seasons": OCEAN_CLIMO_SEASONS},
+        {"filepath": "post/analysis/mpas_analysis/ts_1850-2014_climo_1985-2014/clim/mpas/avg/remapped/mld_IcoswISC30E3r5_to_0.5x0.5degree/mpaso_{season}_{start}_{end}_climo_ncremap.nc", "climo_year_start": "1985", "climo_year_end": "2014", "seasons": OCEAN_CLIMO_SEASONS},
         {"filepath": "archive/atm/hist/v3.LR.historical_{ens}.eam.h1.{YYYY}-{MM}-{DD}-00000.nc", "start": "1985", "end": "2024"},
     ],
     "v3.LR.lowECS.historical": [
@@ -74,6 +105,22 @@ GROUP_VARIABLES = {
         {"filepath": "post/atm/glb/ts/monthly/5yr/TREFHT_{start}_{end}.nc", "start": "185001", "end": "202412"},
         {"filepath": "post/atm/glb/ts/monthly/5yr/PRECC_{start}_{end}.nc",  "start": "185001", "end": "202412"},
         {"filepath": "post/atm/glb/ts/monthly/5yr/PRECL_{start}_{end}.nc",  "start": "185001", "end": "202412"},
+        {"filepath": "post/atm/glb/ts/monthly/5yr/CLDLOW_{start}_{end}.nc", "start": "185001", "end": "202412"},
+        {"filepath": "post/atm/glb/ts/monthly/5yr/CLDMED_{start}_{end}.nc", "start": "185001", "end": "202412"},
+        {"filepath": "post/atm/glb/ts/monthly/5yr/CLDHGH_{start}_{end}.nc", "start": "185001", "end": "202412"},
+        # Atmosphere seasonal climatology (ANN, DJF, MAM, JJA, SON)
+        {"filepath": "post/atm/180x360_aave/clim/30yr/{casename}_{season}_{start}_{end}_climo.nc", "climo_year_start": "1985", "climo_year_end": "2014", "seasons": ATM_CLIMO_SEASONS},
+        # Ocean masked climatology (sst, sss, mld; seasons: ANN, JFM, JAS)
+        {"filepath": "post/analysis/mpas_analysis/ts_1850-2014_climo_1985-2014/clim/mpas/avg/masked/sst_IcoswISC30E3r5/mpaso_{season}_{start}_{end}_climo.nc", "climo_year_start": "1985", "climo_year_end": "2014", "seasons": OCEAN_CLIMO_SEASONS},
+        {"filepath": "post/analysis/mpas_analysis/ts_1850-2014_climo_1985-2014/clim/mpas/avg/masked/sss_IcoswISC30E3r5/mpaso_{season}_{start}_{end}_climo.nc", "climo_year_start": "1985", "climo_year_end": "2014", "seasons": OCEAN_CLIMO_SEASONS},
+        {"filepath": "post/analysis/mpas_analysis/ts_1850-2014_climo_1985-2014/clim/mpas/avg/masked/mld_IcoswISC30E3r5/mpaso_{season}_{start}_{end}_climo.nc", "climo_year_start": "1985", "climo_year_end": "2014", "seasons": OCEAN_CLIMO_SEASONS},
+        # Ocean remapped climatology
+        {"filepath": "post/analysis/mpas_analysis/ts_1850-2014_climo_1985-2014/clim/mpas/avg/remapped/sst_IcoswISC30E3r5_to_0.5x0.5degree/mpaso_{season}_{start}_{end}_climo.nc", "climo_year_start": "1985", "climo_year_end": "2014", "seasons": OCEAN_CLIMO_SEASONS},
+        {"filepath": "post/analysis/mpas_analysis/ts_1850-2014_climo_1985-2014/clim/mpas/avg/remapped/sst_IcoswISC30E3r5_to_0.5x0.5degree/mpaso_{season}_{start}_{end}_climo_ncremap.nc", "climo_year_start": "1985", "climo_year_end": "2014", "seasons": OCEAN_CLIMO_SEASONS},
+        {"filepath": "post/analysis/mpas_analysis/ts_1850-2014_climo_1985-2014/clim/mpas/avg/remapped/sss_IcoswISC30E3r5_to_0.5x0.5degree/mpaso_{season}_{start}_{end}_climo.nc", "climo_year_start": "1985", "climo_year_end": "2014", "seasons": OCEAN_CLIMO_SEASONS},
+        {"filepath": "post/analysis/mpas_analysis/ts_1850-2014_climo_1985-2014/clim/mpas/avg/remapped/sss_IcoswISC30E3r5_to_0.5x0.5degree/mpaso_{season}_{start}_{end}_climo_ncremap.nc", "climo_year_start": "1985", "climo_year_end": "2014", "seasons": OCEAN_CLIMO_SEASONS},
+        {"filepath": "post/analysis/mpas_analysis/ts_1850-2014_climo_1985-2014/clim/mpas/avg/remapped/mld_IcoswISC30E3r5_to_0.5x0.5degree/mpaso_{season}_{start}_{end}_climo.nc", "climo_year_start": "1985", "climo_year_end": "2014", "seasons": OCEAN_CLIMO_SEASONS},
+        {"filepath": "post/analysis/mpas_analysis/ts_1850-2014_climo_1985-2014/clim/mpas/avg/remapped/mld_IcoswISC30E3r5_to_0.5x0.5degree/mpaso_{season}_{start}_{end}_climo_ncremap.nc", "climo_year_start": "1985", "climo_year_end": "2014", "seasons": OCEAN_CLIMO_SEASONS},
         {"filepath": "archive/atm/hist/v3.LR.lowECS.historical_{ens}.eam.h1.{YYYY}-{MM}-{DD}-00000.nc", "start": "1985", "end": "2024"},
     ],
     "v3.LR.highECS.historical": [
@@ -82,6 +129,22 @@ GROUP_VARIABLES = {
         {"filepath": "post/atm/glb/ts/monthly/5yr/TREFHT_{start}_{end}.nc", "start": "185001", "end": "202412"},
         {"filepath": "post/atm/glb/ts/monthly/5yr/PRECC_{start}_{end}.nc",  "start": "185001", "end": "202412"},
         {"filepath": "post/atm/glb/ts/monthly/5yr/PRECL_{start}_{end}.nc",  "start": "185001", "end": "202412"},
+        {"filepath": "post/atm/glb/ts/monthly/5yr/CLDLOW_{start}_{end}.nc", "start": "185001", "end": "202412"},
+        {"filepath": "post/atm/glb/ts/monthly/5yr/CLDMED_{start}_{end}.nc", "start": "185001", "end": "202412"},
+        {"filepath": "post/atm/glb/ts/monthly/5yr/CLDHGH_{start}_{end}.nc", "start": "185001", "end": "202412"},
+        # Atmosphere seasonal climatology (ANN, DJF, MAM, JJA, SON)
+        {"filepath": "post/atm/180x360_aave/clim/30yr/{casename}_{season}_{start}_{end}_climo.nc", "climo_year_start": "1985", "climo_year_end": "2014", "seasons": ATM_CLIMO_SEASONS},
+        # Ocean masked climatology (sst, sss, mld; seasons: ANN, JFM, JAS)
+        {"filepath": "post/analysis/mpas_analysis/ts_1850-2014_climo_1985-2014/clim/mpas/avg/masked/sst_IcoswISC30E3r5/mpaso_{season}_{start}_{end}_climo.nc", "climo_year_start": "1985", "climo_year_end": "2014", "seasons": OCEAN_CLIMO_SEASONS},
+        {"filepath": "post/analysis/mpas_analysis/ts_1850-2014_climo_1985-2014/clim/mpas/avg/masked/sss_IcoswISC30E3r5/mpaso_{season}_{start}_{end}_climo.nc", "climo_year_start": "1985", "climo_year_end": "2014", "seasons": OCEAN_CLIMO_SEASONS},
+        {"filepath": "post/analysis/mpas_analysis/ts_1850-2014_climo_1985-2014/clim/mpas/avg/masked/mld_IcoswISC30E3r5/mpaso_{season}_{start}_{end}_climo.nc", "climo_year_start": "1985", "climo_year_end": "2014", "seasons": OCEAN_CLIMO_SEASONS},
+        # Ocean remapped climatology
+        {"filepath": "post/analysis/mpas_analysis/ts_1850-2014_climo_1985-2014/clim/mpas/avg/remapped/sst_IcoswISC30E3r5_to_0.5x0.5degree/mpaso_{season}_{start}_{end}_climo.nc", "climo_year_start": "1985", "climo_year_end": "2014", "seasons": OCEAN_CLIMO_SEASONS},
+        {"filepath": "post/analysis/mpas_analysis/ts_1850-2014_climo_1985-2014/clim/mpas/avg/remapped/sst_IcoswISC30E3r5_to_0.5x0.5degree/mpaso_{season}_{start}_{end}_climo_ncremap.nc", "climo_year_start": "1985", "climo_year_end": "2014", "seasons": OCEAN_CLIMO_SEASONS},
+        {"filepath": "post/analysis/mpas_analysis/ts_1850-2014_climo_1985-2014/clim/mpas/avg/remapped/sss_IcoswISC30E3r5_to_0.5x0.5degree/mpaso_{season}_{start}_{end}_climo.nc", "climo_year_start": "1985", "climo_year_end": "2014", "seasons": OCEAN_CLIMO_SEASONS},
+        {"filepath": "post/analysis/mpas_analysis/ts_1850-2014_climo_1985-2014/clim/mpas/avg/remapped/sss_IcoswISC30E3r5_to_0.5x0.5degree/mpaso_{season}_{start}_{end}_climo_ncremap.nc", "climo_year_start": "1985", "climo_year_end": "2014", "seasons": OCEAN_CLIMO_SEASONS},
+        {"filepath": "post/analysis/mpas_analysis/ts_1850-2014_climo_1985-2014/clim/mpas/avg/remapped/mld_IcoswISC30E3r5_to_0.5x0.5degree/mpaso_{season}_{start}_{end}_climo.nc", "climo_year_start": "1985", "climo_year_end": "2014", "seasons": OCEAN_CLIMO_SEASONS},
+        {"filepath": "post/analysis/mpas_analysis/ts_1850-2014_climo_1985-2014/clim/mpas/avg/remapped/mld_IcoswISC30E3r5_to_0.5x0.5degree/mpaso_{season}_{start}_{end}_climo_ncremap.nc", "climo_year_start": "1985", "climo_year_end": "2014", "seasons": OCEAN_CLIMO_SEASONS},
         {"filepath": "archive/atm/hist/v3.LR.highECS.historical_{ens}.eam.h1.{YYYY}-{MM}-{DD}-00000.nc", "start": "1985", "end": "2024"},
     ],
     "ssp370": [
@@ -90,7 +153,6 @@ GROUP_VARIABLES = {
         {"filepath": "post/atm/glb/ts/monthly/4yr/TREFHT_{start}_{end}.nc", "start": "202501", "end": "210012"},
         {"filepath": "post/atm/glb/ts/monthly/4yr/PRECC_{start}_{end}.nc",  "start": "202501", "end": "210012"},
         {"filepath": "post/atm/glb/ts/monthly/4yr/PRECL_{start}_{end}.nc",  "start": "202501", "end": "210012"},
-        
     ]
 }
 
@@ -299,7 +361,7 @@ def _iter_segments(start: str, end: str, segment_years: int):
 
 
 def _get_member_id(sim_name: str) -> str:
-    """Extract the trailing member ID from a sim name like 'exp_0051' → '0051'.
+    """Extract the trailing member ID from a sim name like 'exp_0051' -> '0051'.
 
     Returns the full sim_name unchanged if no underscore-delimited suffix is present.
     """
@@ -319,6 +381,33 @@ def _build_daily_archive_year_glob(filepath_template: str, year: int, member_id:
     pattern = pattern.replace("{MM}", "*")
     pattern = pattern.replace("{DD}", "*")
     return pattern
+
+
+def _is_climo(var: dict) -> bool:
+    """Return True when the variable entry represents a seasonal climatology."""
+    return "seasons" in var
+
+
+def _climo_files(sim_name: str, var: dict) -> list:
+    """Return all file paths for a seasonal climatology variable entry.
+
+    Substitutes {season}, {start}, {end}, and optionally {casename} for each
+    season defined in var["seasons"].  start/end are built as YYYYMM strings
+    using var["climo_year_start"] / var["climo_year_end"] combined with the
+    per-season start/end month from var["seasons"].
+    """
+    year_start = var["climo_year_start"]
+    year_end = var["climo_year_end"]
+    template = var["filepath"]
+    files = []
+    for season, (mo_start, mo_end) in var["seasons"].items():
+        fname = template.replace("{season}", season)
+        fname = fname.replace("{start}", f"{year_start}{mo_start}")
+        fname = fname.replace("{end}", f"{year_end}{mo_end}")
+        if "{casename}" in fname:
+            fname = fname.replace("{casename}", sim_name)
+        files.append(fname)
+    return files
 
 
 def _daily_archive_to_pull(sim_name: str, sim_config: dict, var: dict) -> list:
@@ -367,13 +456,15 @@ def build_filenames(sim_name: str, sim_config: dict, variables: list) -> list:
       start     (str) : overall first date of the timeseries (YYYYMM)
       end       (str) : overall last  date of the timeseries (YYYYMM)
 
-    The segment size is parsed from the filepath (e.g. '5yr' → 5 years).
+    The segment size is parsed from the filepath (e.g. '5yr' -> 5 years).
     One filename is produced per segment per variable.
     """
     filenames = []
     for var in variables:
         if _is_daily_archive(var["filepath"]):
             continue  # daily archive vars are handled by _daily_archive_to_pull
+        if _is_climo(var):
+            continue  # climo vars are handled by _climo_files
         filepath_template = var["filepath"]
         seg_years = _parse_segment_years(filepath_template)
         for seg_start, seg_end in _iter_segments(var["start"], var["end"], seg_years):
@@ -405,6 +496,14 @@ def files_to_pull(sim_name: str, sim_config: dict) -> list:
     for var in variables:
         if _is_daily_archive(var["filepath"]):
             missing.extend(_daily_archive_to_pull(sim_name, sim_config, var))
+        elif _is_climo(var):
+            for fname in _climo_files(sim_name, var):
+                local_path = get_local_path(sim_name, sim_config, fname)
+                if local_path.exists():
+                    print(f"  [present]  {local_path}")
+                else:
+                    print(f"  [missing]  {local_path}")
+                    missing.append(fname)
         else:
             seg_years = _parse_segment_years(var["filepath"])
             for seg_start, seg_end in _iter_segments(var["start"], var["end"], seg_years):
