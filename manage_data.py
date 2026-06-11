@@ -98,6 +98,8 @@ GROUP_VARIABLES = {
         {"filepath": "post/analysis/mpas_analysis/ts_1850-2014_climo_1985-2014/clim/mpas/avg/remapped/mld_IcoswISC30E3r5_to_0.5x0.5degree/mpaso_{season}_{start}_{end}_climo.nc", "climo_year_start": "1985", "climo_year_end": "2014", "seasons": OCEAN_CLIMO_SEASONS},
         {"filepath": "post/analysis/mpas_analysis/ts_1850-2014_climo_1985-2014/clim/mpas/avg/remapped/mld_IcoswISC30E3r5_to_0.5x0.5degree/mpaso_{season}_{start}_{end}_climo_ncremap.nc", "climo_year_start": "1985", "climo_year_end": "2014", "seasons": OCEAN_CLIMO_SEASONS},
         {"filepath": "archive/atm/hist/v3.LR.historical_{ens}.eam.h1.{YYYY}-{MM}-{DD}-00000.nc", "start": "1985", "end": "2024"},
+        {"filepath": "archive/atm/hist/v3.LR.historical_{ens}.eam.h0.{YYYY}-{MM}.nc", "start": "1850", "end": "2024"},
+
     ],
     "v3.LR.lowECS.historical": [
         {"filepath": "post/atm/glb/ts/monthly/5yr/FSNTOA_{start}_{end}.nc", "start": "185001", "end": "202412"},
@@ -122,6 +124,7 @@ GROUP_VARIABLES = {
         {"filepath": "post/analysis/mpas_analysis/ts_1850-2014_climo_1985-2014/clim/mpas/avg/remapped/mld_IcoswISC30E3r5_to_0.5x0.5degree/mpaso_{season}_{start}_{end}_climo.nc", "climo_year_start": "1985", "climo_year_end": "2014", "seasons": OCEAN_CLIMO_SEASONS},
         {"filepath": "post/analysis/mpas_analysis/ts_1850-2014_climo_1985-2014/clim/mpas/avg/remapped/mld_IcoswISC30E3r5_to_0.5x0.5degree/mpaso_{season}_{start}_{end}_climo_ncremap.nc", "climo_year_start": "1985", "climo_year_end": "2014", "seasons": OCEAN_CLIMO_SEASONS},
         {"filepath": "archive/atm/hist/v3.LR.lowECS.historical_{ens}.eam.h1.{YYYY}-{MM}-{DD}-00000.nc", "start": "1985", "end": "2024"},
+        {"filepath": "archive/atm/hist/v3.LR.lowECS.historical_{ens}.eam.h0.{YYYY}-{MM}.nc", "start": "1850", "end": "2024"},
     ],
     "v3.LR.highECS.historical": [
         {"filepath": "post/atm/glb/ts/monthly/5yr/FSNTOA_{start}_{end}.nc", "start": "185001", "end": "202412"},
@@ -146,6 +149,7 @@ GROUP_VARIABLES = {
         {"filepath": "post/analysis/mpas_analysis/ts_1850-2014_climo_1985-2014/clim/mpas/avg/remapped/mld_IcoswISC30E3r5_to_0.5x0.5degree/mpaso_{season}_{start}_{end}_climo.nc", "climo_year_start": "1985", "climo_year_end": "2014", "seasons": OCEAN_CLIMO_SEASONS},
         {"filepath": "post/analysis/mpas_analysis/ts_1850-2014_climo_1985-2014/clim/mpas/avg/remapped/mld_IcoswISC30E3r5_to_0.5x0.5degree/mpaso_{season}_{start}_{end}_climo_ncremap.nc", "climo_year_start": "1985", "climo_year_end": "2014", "seasons": OCEAN_CLIMO_SEASONS},
         {"filepath": "archive/atm/hist/v3.LR.highECS.historical_{ens}.eam.h1.{YYYY}-{MM}-{DD}-00000.nc", "start": "1985", "end": "2024"},
+        {"filepath": "archive/atm/hist/v3.LR.highECS.historical_{ens}.eam.h0.{YYYY}-{MM}.nc", "start": "1850", "end": "2024"},
     ],
     "ssp370": [
         {"filepath": "post/atm/glb/ts/monthly/4yr/FSNTOA_{start}_{end}.nc", "start": "202501", "end": "210012"},
