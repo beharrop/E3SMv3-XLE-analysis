@@ -93,7 +93,7 @@ SIMULATIONS = {
 
     # -----------------------------------------------------------------------
     # v3.LR.lowECS.historical  (19 members with known URLs)
-    # Omitted (no public URL): 0231, 0241, 0251, 0261, 0271, 0281
+    # Omitted (no public URL): 0241, 0251, 0261
     # -----------------------------------------------------------------------
 
     # --- harr152 on compy-dtn.pnl.gov (13 members) ---
@@ -115,15 +115,20 @@ SIMULATIONS = {
     "v3.LR.lowECS.historical_0111": "https://web.lcrc.anl.gov/public/e3sm/diagnostic_output/ac.bharrop/E3SMv3/v3.LR.lowECS.historical_0111/",
     "v3.LR.lowECS.historical_0121": "https://web.lcrc.anl.gov/public/e3sm/diagnostic_output/ac.bharrop/E3SMv3/v3.LR.lowECS.historical_0121/",
 
-    # --- ac.claudia.tebaldi on lcrc (4 members) ---
+    # --- ac.claudia.tebaldi on lcrc (6 members) ---
+    "v3.LR.lowECS.historical_0271": "https://web.lcrc.anl.gov/public/e3sm/diagnostic_output/ac.claudia.tebaldi/E3SMv3/v3.LR.lowECS.historical_0271/",
+    "v3.LR.lowECS.historical_0281": "https://web.lcrc.anl.gov/public/e3sm/diagnostic_output/ac.claudia.tebaldi/E3SMv3/v3.LR.lowECS.historical_0281/",
     "v3.LR.lowECS.historical_0291": "https://web.lcrc.anl.gov/public/e3sm/diagnostic_output/ac.claudia.tebaldi/E3SMv3/v3.LR.lowECS.historical_0291/",
     "v3.LR.lowECS.historical_0301": "https://web.lcrc.anl.gov/public/e3sm/diagnostic_output/ac.claudia.tebaldi/E3SMv3/v3.LR.lowECS.historical_0301/",
     "v3.LR.lowECS.historical_0311": "https://web.lcrc.anl.gov/public/e3sm/diagnostic_output/ac.claudia.tebaldi/E3SMv3/v3.LR.lowECS.historical_0311/",
     "v3.LR.lowECS.historical_0321": "https://web.lcrc.anl.gov/public/e3sm/diagnostic_output/ac.claudia.tebaldi/E3SMv3/v3.LR.lowECS.historical_0321/",
 
+    # --- ac.smahajan on lcrc (1 member) ---
+    "v3.LR.lowECS.historical_0231": "https://web.lcrc.anl.gov/public/e3sm/diagnostic_output/ac.smahajan/E3SMv3/v3.LR.lowECS.historical_0231/",
+
+
     # -----------------------------------------------------------------------
-    # v3.LR.highECS.historical  (24 members with known URLs)
-    # Omitted (no public URL): 0291
+    # v3.LR.highECS.historical  (25 members with known URLs)
     # -----------------------------------------------------------------------
 
     # --- harr152 on compy-dtn.pnl.gov (8 members) ---
@@ -132,6 +137,7 @@ SIMULATIONS = {
     "v3.LR.highECS.historical_0101": "https://compy-dtn.pnl.gov/harr152/E3SMv3/v3.LR.highECS.historical_0101/",
     "v3.LR.highECS.historical_0271": "https://compy-dtn.pnl.gov/harr152/E3SMv3/v3.LR.highECS.historical_0271/",
     "v3.LR.highECS.historical_0281": "https://compy-dtn.pnl.gov/harr152/E3SMv3/v3.LR.highECS.historical_0281/",
+    "v3.LR.highECS.historical_0291": "https://web.lcrc.anl.gov/public/e3sm/diagnostic_output/ac.bharrop/E3SMv3/v3.LR.highECS.historical_0291/",
     "v3.LR.highECS.historical_0301": "https://compy-dtn.pnl.gov/harr152/E3SMv3/v3.LR.highECS.historical_0301/",
     "v3.LR.highECS.historical_0311": "https://compy-dtn.pnl.gov/harr152/E3SMv3/v3.LR.highECS.historical_0311/",
     "v3.LR.highECS.historical_0321": "https://compy-dtn.pnl.gov/harr152/E3SMv3/v3.LR.highECS.historical_0321/",

@@ -100,6 +100,9 @@ GROUP_VARIABLES = {
         {"filepath": "post/analysis/mpas_analysis/ts_1850-2014_climo_1985-2014/clim/mpas/avg/remapped/mld_IcoswISC30E3r5_to_0.5x0.5degree/mpaso_{season}_{start}_{end}_climo_ncremap.nc", "climo_year_start": "1985", "climo_year_end": "2014", "seasons": OCEAN_CLIMO_SEASONS},
         {"filepath": "archive/atm/hist/v3.LR.historical_{ens}.eam.h1.{YYYY}-{MM}-{DD}-00000.nc", "start": "1985", "end": "2024"},
         {"filepath": "archive/atm/hist/v3.LR.historical_{ens}.eam.h0.{YYYY}-{MM}.nc", "start": "1850", "end": "2024"},
+        # CMIP timeseries (atmosphere and land, all variables)
+        {"glob": "post/atm/180x360_aave/cmip_ts/monthly/*"},
+        {"glob": "post/lnd/180x360_aave/cmip_ts/monthly/*"},
 
     ],
     "v3.LR.lowECS.historical": [
@@ -127,6 +130,9 @@ GROUP_VARIABLES = {
         {"filepath": "post/analysis/mpas_analysis/ts_1850-2014_climo_1985-2014/clim/mpas/avg/remapped/mld_IcoswISC30E3r5_to_0.5x0.5degree/mpaso_{season}_{start}_{end}_climo_ncremap.nc", "climo_year_start": "1985", "climo_year_end": "2014", "seasons": OCEAN_CLIMO_SEASONS},
         {"filepath": "archive/atm/hist/v3.LR.lowECS.historical_{ens}.eam.h1.{YYYY}-{MM}-{DD}-00000.nc", "start": "1985", "end": "2024"},
         {"filepath": "archive/atm/hist/v3.LR.lowECS.historical_{ens}.eam.h0.{YYYY}-{MM}.nc", "start": "1850", "end": "2024"},
+        # CMIP timeseries (atmosphere and land, all variables)
+        {"glob": "post/atm/180x360_aave/cmip_ts/monthly/*"},
+        {"glob": "post/lnd/180x360_aave/cmip_ts/monthly/*"},
     ],
     "v3.LR.highECS.historical": [
         {"filepath": "post/atm/glb/ts/monthly/5yr/FSNTOA_{start}_{end}.nc", "start": "185001", "end": "202412"},
@@ -153,6 +159,9 @@ GROUP_VARIABLES = {
         {"filepath": "post/analysis/mpas_analysis/ts_1850-2014_climo_1985-2014/clim/mpas/avg/remapped/mld_IcoswISC30E3r5_to_0.5x0.5degree/mpaso_{season}_{start}_{end}_climo_ncremap.nc", "climo_year_start": "1985", "climo_year_end": "2014", "seasons": OCEAN_CLIMO_SEASONS},
         {"filepath": "archive/atm/hist/v3.LR.highECS.historical_{ens}.eam.h1.{YYYY}-{MM}-{DD}-00000.nc", "start": "1985", "end": "2024"},
         {"filepath": "archive/atm/hist/v3.LR.highECS.historical_{ens}.eam.h0.{YYYY}-{MM}.nc", "start": "1850", "end": "2024"},
+        # CMIP timeseries (atmosphere and land, all variables)
+        {"glob": "post/atm/180x360_aave/cmip_ts/monthly/*"},
+        {"glob": "post/lnd/180x360_aave/cmip_ts/monthly/*"},
     ],
     "ssp370": [
         {"filepath": "post/atm/glb/ts/monthly/4yr/FSNTOA_{start}_{end}.nc", "start": "202501", "end": "210012"},
@@ -395,6 +404,11 @@ def _is_climo(var: dict) -> bool:
     return "seasons" in var
 
 
+def _is_glob(var: dict) -> bool:
+    """Return True when the variable entry is a bare glob pattern for zstash."""
+    return "glob" in var
+
+
 def _climo_files(sim_name: str, var: dict) -> list:
     """Return all file paths for a seasonal climatology variable entry.
 
@@ -468,6 +482,8 @@ def build_filenames(sim_name: str, sim_config: dict, variables: list) -> list:
     """
     filenames = []
     for var in variables:
+        if _is_glob(var):
+            continue  # glob vars are handled by files_to_pull directly
         if _is_daily_archive(var["filepath"]):
             continue  # daily archive vars are handled by _daily_archive_to_pull
         if _is_climo(var):
@@ -501,7 +517,16 @@ def files_to_pull(sim_name: str, sim_config: dict) -> list:
     missing = []
 
     for var in variables:
-        if _is_daily_archive(var["filepath"]):
+        if _is_glob(var):
+            pattern = var["glob"]
+            local_dir = get_local_path(sim_name, sim_config, str(Path(pattern).parent))
+            local_matches = list(local_dir.glob(Path(pattern).name))
+            if local_matches:
+                print(f"  [present]  {len(local_matches)} file(s) matching {pattern}")
+            else:
+                print(f"  [missing]  {pattern}")
+                missing.append(pattern)
+        elif _is_daily_archive(var["filepath"]):
             missing.extend(_daily_archive_to_pull(sim_name, sim_config, var))
         elif _is_climo(var):
             for fname in _climo_files(sim_name, var):
