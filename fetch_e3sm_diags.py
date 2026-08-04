@@ -129,8 +129,8 @@ SIMULATIONS = {
     "v3.LR.lowECS.historical_0231": "https://web.lcrc.anl.gov/public/e3sm/diagnostic_output/ac.smahajan/E3SMv3/v3.LR.lowECS.historical_0231/",
 
     # --- ac.kzhang on lcrc (2 members) ---
-    "https://web.lcrc.anl.gov/public/e3sm/diagnostic_output/ac.kzhang/E3SMv3/v3.LR.lowECS.historical_0251/",
-    "https://web.lcrc.anl.gov/public/e3sm/diagnostic_output/ac.kzhang/E3SMv3/v3.LR.lowECS.historical_0261/",
+    "v3.LR.lowECS.historical_0251": "https://web.lcrc.anl.gov/public/e3sm/diagnostic_output/ac.kzhang/E3SMv3/v3.LR.lowECS.historical_0251/",
+    "v3.LR.lowECS.historical_0261": "https://web.lcrc.anl.gov/public/e3sm/diagnostic_output/ac.kzhang/E3SMv3/v3.LR.lowECS.historical_0261/",
 
 
     # -----------------------------------------------------------------------
