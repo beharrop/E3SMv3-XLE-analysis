@@ -256,25 +256,35 @@ _ENSEMBLE_MEMBERS = {
             "hpss_template": "/home/b/beharrop/E3SMv3/v3.LR.lowECS/v3.LR.lowECS.historical_{member_id}",
             "members": ["0051", "0091", "0101", "0111", "0121", 
                         "0131", "0141", "0151", "0161", "0171", 
-                        "0181", "0191", "0201", "0211", "0221"], 
+                        "0181", "0191", "0201", "0211", "0221",
+                        "0241"], 
         },
         {
             "hpss_template": "/home/c/ctebaldi/E3SMv3LR/XLE/historical_lowECS/v3.LR.lowECS.historical_{member_id}",
-            "members": ["0291", "0301", "0311", "0321"],
+            "members": ["0271", "0281", "0291", "0301", "0311",
+                        "0321"],
+        },
+        {
+            "hpss_template": "/home/s/salil/E3SMv3/v3.LR.lowECS/v3.LR.lowECS.historical_{member_id}",
+            "members": ["0231"],
+        },
+        {
+            "hpss_template": "/home/k/kaizhang/E3SM/E3SMv3/v3.LR.lowECS.historical_{member_id}",
+            "members": ["0251", "0261"],
         },
     ],
 
     "v3.LR.highECS.historical": [
         {
             "hpss_template": "/home/b/beharrop/E3SMv3/v3.LR.highECS/v3.LR.highECS.historical_{member_id}",
-            "members": ["0051", "0091", "0101", "0281",
-                        "0301", "0311", "0321"], 
+            "members": ["0051", "0091", "0101", "0251", "0261",
+                        "0281", "0291", "0301", "0311", "0321"], 
         },
         {
             "hpss_template": "/home/c/ctebaldi/E3SMv3LR/XLE/historical_highECS/v3.LR.highECS.historical_{member_id}",
             "members": ["0111", "0121", "0131", "0141", "0151",
                         "0161", "0171", "0181", "0191", "0201",
-                        "0211", "0221", "0231"],
+                        "0211", "0221", "0231", "0241", "0271"],
         },
     ],
 

@@ -92,11 +92,11 @@ SIMULATIONS = {
     "v3.LR.historical_0321": "https://web.lcrc.anl.gov/public/e3sm/diagnostic_output/ac.wlin/E3SMv3/v3.LR.historical_0321/",
 
     # -----------------------------------------------------------------------
-    # v3.LR.lowECS.historical  (19 members with known URLs)
-    # Omitted (no public URL): 0241, 0251, 0261
+    # v3.LR.lowECS.historical  (25 members with known URLs)
+    # Omitted (no public URL): 0261
     # -----------------------------------------------------------------------
 
-    # --- harr152 on compy-dtn.pnl.gov (13 members) ---
+    # --- harr152 on compy-dtn.pnl.gov (15 members) ---
     "v3.LR.lowECS.historical_0051": "https://compy-dtn.pnl.gov/harr152/E3SMv3/v3.LR.lowECS.historical_0051/",
     "v3.LR.lowECS.historical_0091": "https://compy-dtn.pnl.gov/harr152/E3SMv3/v3.LR.lowECS.historical_0091/",
     "v3.LR.lowECS.historical_0101": "https://compy-dtn.pnl.gov/harr152/E3SMv3/v3.LR.lowECS.historical_0101/",
@@ -110,6 +110,8 @@ SIMULATIONS = {
     "v3.LR.lowECS.historical_0201": "https://compy-dtn.pnl.gov/harr152/E3SMv3/v3.LR.lowECS.historical_0201/",
     "v3.LR.lowECS.historical_0211": "https://compy-dtn.pnl.gov/harr152/E3SMv3/v3.LR.lowECS.historical_0211/",
     "v3.LR.lowECS.historical_0221": "https://compy-dtn.pnl.gov/harr152/E3SMv3/v3.LR.lowECS.historical_0221/",
+    "v3.LR.lowECS.historical_0241": "https://compy-dtn.pnl.gov/harr152/E3SMv3/v3.LR.lowECS.historical_0241/",
+    
 
     # --- ac.bharrop on lcrc (2 members) ---
     "v3.LR.lowECS.historical_0111": "https://web.lcrc.anl.gov/public/e3sm/diagnostic_output/ac.bharrop/E3SMv3/v3.LR.lowECS.historical_0111/",
@@ -126,12 +128,16 @@ SIMULATIONS = {
     # --- ac.smahajan on lcrc (1 member) ---
     "v3.LR.lowECS.historical_0231": "https://web.lcrc.anl.gov/public/e3sm/diagnostic_output/ac.smahajan/E3SMv3/v3.LR.lowECS.historical_0231/",
 
+    # --- ac.kzhang on lcrc (2 members) ---
+    "https://web.lcrc.anl.gov/public/e3sm/diagnostic_output/ac.kzhang/E3SMv3/v3.LR.lowECS.historical_0251/",
+    "https://web.lcrc.anl.gov/public/e3sm/diagnostic_output/ac.kzhang/E3SMv3/v3.LR.lowECS.historical_0261/",
+
 
     # -----------------------------------------------------------------------
     # v3.LR.highECS.historical  (25 members with known URLs)
     # -----------------------------------------------------------------------
 
-    # --- harr152 on compy-dtn.pnl.gov (8 members) ---
+    # --- harr152 on compy-dtn.pnl.gov (9 members) ---
     "v3.LR.highECS.historical_0051": "https://compy-dtn.pnl.gov/harr152/E3SMv3/v3.LR.highECS.historical_0051/",
     "v3.LR.highECS.historical_0091": "https://compy-dtn.pnl.gov/harr152/E3SMv3/v3.LR.highECS.historical_0091/",
     "v3.LR.highECS.historical_0101": "https://compy-dtn.pnl.gov/harr152/E3SMv3/v3.LR.highECS.historical_0101/",
