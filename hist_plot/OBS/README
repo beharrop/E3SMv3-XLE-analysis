@@ -1,0 +1,67 @@
+Data source
+===========
+
+Downloaded on 2018/05/24
+
+HadCRUT4
+--------
+
+wget https://crudata.uea.ac.uk/cru/data/temperature/HadCRUT4-gl.dat
+wget https://crudata.uea.ac.uk/cru/data/temperature/HadCRUT4-nh.dat
+wget https://crudata.uea.ac.uk/cru/data/temperature/HadCRUT4-sh.dat
+
+GISTEMP
+-------
+
+wget https://data.giss.nasa.gov/gistemp/tabledata_v3/GLB.Ts+dSST.csv
+wget https://data.giss.nasa.gov/gistemp/tabledata_v3/NH.Ts+dSST.csv
+wget https://data.giss.nasa.gov/gistemp/tabledata_v3/SH.Ts+dSST.csv
+#--> manually commented out head lines and last (incomplete) data line
+
+NCDC
+----
+
+wget ftp://ftp.ncdc.noaa.gov/pub/data/noaaglobaltemp/operational/timeseries/aravg.ann.land_ocean.90S.90N.v4.0.1.201804.asc
+wget ftp://ftp.ncdc.noaa.gov/pub/data/noaaglobaltemp/operational/timeseries/aravg.ann.land_ocean.00N.90N.v4.0.1.201804.asc
+wget ftp://ftp.ncdc.noaa.gov/pub/data/noaaglobaltemp/operational/timeseries/aravg.ann.land_ocean.90S.00N.v4.0.1.201804.asc
+
+# 20211005 ---------------------------------------------------------------------
+
+# Download HadCRUT5 Analysis data from
+https://crudata.uea.ac.uk/cru/data/temperature/#datdow
+
+wget --no-check-certificate https://crudata.uea.ac.uk/cru/data/temperature/HadCRUT5.0Analysis_gl.txt
+wget --no-check-certificate https://crudata.uea.ac.uk/cru/data/temperature/HadCRUT5.0Analysis_nh.txt
+wget --no-check-certificate https://crudata.uea.ac.uk/cru/data/temperature/HadCRUT5.0Analysis_sh.txt
+
+# 20211019 ---------------------------------------------------------------------
+
+# Downloading NOAA NCDC data
+# https://www.ncdc.noaa.gov/monitoring-references/faq/anomalies.php#anomalies
+
+# Saved under
+NCDC/1880-2020_global.csv
+#--> edited to add comments (#) in front of header lines
+
+# Download GISTEMP data
+cd GISTEMP
+wget https://data.giss.nasa.gov/gistemp/tabledata_v4/GLB.Ts+dSST.csv
+wget https://data.giss.nasa.gov/gistemp/tabledata_v4/NH.Ts+dSST.csv
+wget https://data.giss.nasa.gov/gistemp/tabledata_v4/SH.Ts+dSST.csv
+#--> edited files to remove last incomplete year (2021)
+#    and comment out header lines
+
+# 20220628 ---------------------------------------------------------------------
+
+# Download additional HadCRUT5 Analysis data from
+https://crudata.uea.ac.uk/cru/data/temperature/#datdow
+
+# HadCRUT5 Analysis on 5x5 grid
+wget --no-check-certificate https://crudata.uea.ac.uk/cru/data/temperature/HadCRUT.5.0.1.0.analysis.anomalies.ensemble_mean.nc
+
+# Absolute 1961-1990 mean
+wget --no-check-certificate https://crudata.uea.ac.uk/cru/data/temperature/absolute_v5.nc
+wget --no-check-certificate https://crudata.uea.ac.uk/cru/data/temperature/abs_glnhsh.txt
+
+
+

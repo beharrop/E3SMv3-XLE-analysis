@@ -1,0 +1,265 @@
+# Script to plot evolution of global surface air temperature compared to obs
+
+import numpy as np
+import numpy.ma as ma
+import matplotlib.pyplot as plt
+
+# -----------------------------------------------------------------------------
+def tableau_colors():
+
+  # These are the "Tableau 20" colors as RGB.    
+  t20 = [(31, 119, 180), (174, 199, 232), (255, 127, 14), (255, 187, 120),    
+         (44, 160, 44), (152, 223, 138), (214, 39, 40), (255, 152, 150),    
+         (148, 103, 189), (197, 176, 213), (140, 86, 75), (196, 156, 148),    
+         (227, 119, 194), (247, 182, 210), (127, 127, 127), (199, 199, 199),    
+         (188, 189, 34), (219, 219, 141), (23, 190, 207), (158, 218, 229)]    
+  # Scale the RGB values to the [0, 1] range, which is the format matplotlib accepts.    
+  for i in range(len(t20)):    
+      r, g, b = t20[i]    
+      t20[i] = (r / 255., g / 255., b / 255.)  
+
+  # "Tableau 10" uses every other color
+  t10 = []
+  for i in range(0,len(t20),2):    
+      t10.append(t20[i])  
+
+  return t10,t20
+
+# -----------------------------------------------------------------------------
+def read_observations(path, normyr):
+
+  # --- HadCRUT5-Analysis ---
+  region = ['gl', 'nh', 'sh']
+  nregions = len(region)
+  for r in range(nregions):
+    tmp_year = []
+    tmp_tas = []
+    f = open('%s/HadCRUT5-Analysis/HadCRUT5.0Analysis_%s.txt' % (path,region[r]), 'r')
+    line = f.readline()
+    while line:
+      tmp = line.split()
+      tmp_year.append(int(tmp[0]))
+      tmp_tas.append(float(tmp[13]))
+      line = f.readline()
+      line = f.readline()
+    f.close()
+    if r == 0:
+        year = np.array(tmp_year)
+        nyears = len(year)
+        tas = ma.zeros( (nyears,nregions), 'float64')
+    tas[:,r] = np.array(tmp_tas)
+
+  # --- Optionally normalize ---
+  if normyr is not None:
+      i1 = (np.abs(year-normyr[0])).argmin()
+      i2 = (np.abs(year-normyr[1])).argmin()
+      print("Normalizing observations")
+      print(year[i1:i2+1])
+      for r in range(len(region)):
+          tas[:,r] = tas[:,r] - np.average(tas[i1:i2+1,r])
+  else:
+      # Add absolute means if not normalizing
+      f = open('%s/HadCRUT5-Analysis/abs_glnhsh.txt' % (path), 'r')
+      line = f.readline()
+      while not line.startswith("Annual "):
+          line = f.readline()
+      tmp = line.split()[1:]
+      absolute = np.array([float(n) for n in tmp]) 
+      print("Adding absolute to observations anomalies")
+      print(absolute)
+      for r in range(len(region)):
+          tas[:,r] = tas[:,r] + absolute[r]
+
+  # Copy to dictionary
+  obs = ({'name':'HadCRUT5-Analysis', 'nyears':nyears, 'nregions':nregions,
+            'year':np.copy(year), 'tas':np.copy(tas)})
+
+  return obs
+
+# -----------------------------------------------------------------------------
+def read_E3SM(name, files, normyr=None):
+
+  nmembers = len(files)
+
+  # --- Read data from csv files ---
+  first = True
+  for m in range(nmembers):
+
+      print("Reading %s" % files[m])
+      data = np.loadtxt(files[m], delimiter=',')
+
+      # years and number of regions based on first member
+      if first:
+          nregions = np.shape(data)[1] - 1
+          year = data[:,0]
+          nyears = len(year)
+          tas = np.zeros([nyears,nregions,nmembers])
+          first = False
+  
+      # copy
+      tas[:,:,m] = data[:,1:]
+
+  # --- Optionally normalize ---
+  if normyr is not None:
+      i1 = (np.abs(year-normyr[0])).argmin()
+      i2 = (np.abs(year-normyr[1])).argmin()
+      print("Normalizing %s" % name)
+      print(year[i1:i2+1])
+      for r in range(nregions):
+          for m in range(nmembers):
+              tas[:,r,m] = tas[:,r,m] - np.average(tas[i1:i2+1,r,m])
+  else:
+      # Convert to deg Celsius if not normalizing
+      tas = tas - 273.15
+
+  # --- Compute ensemble mean, mix, max ---
+  tas_ens = np.zeros([nyears,nregions,3])
+  tas_ens[:,:,0] = np.average(tas, axis=2)
+  tas_ens[:,:,1] = np.amin(tas, axis=2)
+  tas_ens[:,:,2] = np.amax(tas, axis=2)
+
+  # Copy to dictionary
+  model = ({'name':name, 'nyears':nyears, 'nregions':nregions, 'nmembers':nmembers,
+            'year':np.copy(year), 'tas':np.copy(tas), 'tas_ens':np.copy(tas_ens)})
+
+  return model
+
+def read_E3SM_single(name, files, normyr=None):
+
+  print("Reading %s" % files[0])
+  data = np.loadtxt(files[0], delimiter=',')
+  year = data[:,0]
+  nyears = len(year)
+  tas  = data[:,2]
+
+  if normyr is not None:
+    i1 = (np.abs(year-normyr[0])).argmin()
+    i2 = (np.abs(year-normyr[1])).argmin()
+    print("Normalizing %s" % name)
+    print(year[i1:i2+1])
+    tas = tas - np.average(tas[i1:i2+1])
+  else:
+    tas = tas - 273.15
+
+  model = ({'name':name, 'nyears':nyears, 'nregions':1, 'nmembers':1,
+            'year':np.copy(year), 'tas':np.copy(tas)})
+
+  return model
+
+# -----------------------------------------------------------------------------
+def main():
+
+  # --- Color pallette ---
+  t10, t20 = tableau_colors()
+
+  # --- Normalize ---
+  normyr = (1850,1899)
+  #normyr = (1951,1980)
+  #normyr = None
+
+  # --- E3SMv1 ---
+  E3SMv1_files = [
+  'E3SMv1/v1.LR.historical_H1.csv',
+  'E3SMv1/v1.LR.historical_H2.csv',
+  'E3SMv1/v1.LR.historical_H3.csv',
+  'E3SMv1/v1.LR.historical_H4.csv',
+  'E3SMv1/v1.LR.historical_H5.csv',
+  ]
+  v1 = read_E3SM('E3SMv1', E3SMv1_files, normyr)
+
+  # --- E3SMv2 ---
+  E3SMv2_files = [
+  'E3SMv2/v2.LR.historical_0101.csv',
+  'E3SMv2/v2.LR.historical_0151.csv',
+  'E3SMv2/v2.LR.historical_0201.csv',
+  'E3SMv2/v2.LR.historical_0251.csv',
+  'E3SMv2/v2.LR.historical_0301.csv',
+  ]
+  v2 = read_E3SM('E3SMv2', E3SMv2_files, normyr)
+
+  XLE_members = ['0051', '0091', '0101', '0111', '0121',
+                 '0131', '0141', '0151', '0161', '0171',
+                 '0181', '0191', '0201', '0211', '0221',
+                 '0231', '0241', '0251', '0261', '0271',
+                 '0281', '0291', '0301', '0311', '0321',
+                ]
+               
+  # --- E3SMv3 ---
+  E3SMv3_files = [f'E3SMv3/v3.LR.historical_{ens}.csv' for ens in XLE_members]
+  v3 = read_E3SM('E3SMv3 default', E3SMv3_files, normyr)
+
+  # --- E3SMv3 lowECS ---
+  E3SMv3_lowECS_files = [f'E3SMv3.lowECS/v3.LR.lowECS.historical_{ens}.csv' for ens in XLE_members]
+  v3_lowECS = read_E3SM('E3SMv3 lowECS', E3SMv3_lowECS_files, normyr)
+
+  # --- E3SMv3 highECS ---
+  E3SMv3_highECS_files = [f'E3SMv3.highECS/v3.LR.highECS.historical_{ens}.csv' for ens in XLE_members]
+  v3_highECS = read_E3SM('E3SMv3 highECS', E3SMv3_highECS_files, normyr)
+
+  # --- Observations ---
+  obs = read_observations('OBS', normyr)
+
+  # --- Generate plot ---
+  xlim = [1849.5, 2017.5]
+  ylim = [-0.5,1.5]
+
+  region = ['Global', 'NH', 'SH']
+  for r in range(len(region)):
+
+    fig = plt.figure(figsize=[7.0, 4.0])
+    ax = plt.subplot(1, 1, 1)
+    ax.set_xlim(xlim)
+    #ax.set_ylim(ylim)
+
+    # Transparency
+    a = 0.75
+
+    # E3SMv1 ensemble
+    ax.fill_between(v1['year'], v1['tas_ens'][:,r,1], v1['tas_ens'][:,r,2],
+                    color='tab:red', alpha=0.5 * a)
+    ax.plot(v1['year'], v1['tas_ens'][:,r,0],
+            lw=1.5, c='tab:red', label=v1['name'], alpha=a)
+
+    # E3SMv2 ensemble
+    ax.fill_between(v2['year'], v2['tas_ens'][:,r,1], v2['tas_ens'][:,r,2],
+                    color='tab:purple', alpha=0.5 * a)
+    ax.plot(v2['year'],v2['tas_ens'][:,r,0],
+            lw=1.5, c='tab:purple', label=v2['name'], alpha=a)
+
+    # E3SMv3 default ensemble
+    ax.fill_between(v3['year'], v3['tas_ens'][:,r,1], v3['tas_ens'][:,r,2], 
+                    color='tab:green', alpha=0.5 * a)
+    ax.plot(v3['year'], v3['tas_ens'][:,r,0], 
+            lw=1.5, c='tab:green', label=v3['name'], alpha=a)
+
+    # E3SMv3 lowECS ensemble
+    ax.fill_between(v3_lowECS['year'], v3_lowECS['tas_ens'][:,r,1], v3_lowECS['tas_ens'][:,r,2], 
+                    color='tab:blue', alpha=0.5 * a)
+    ax.plot(v3_lowECS['year'], v3_lowECS['tas_ens'][:,r,0], 
+            lw=1.5, c='tab:blue', label=v3_lowECS['name'], alpha=a)
+
+    # E3SMv3 highECS ensemble
+    ax.fill_between(v3_highECS['year'], v3_highECS['tas_ens'][:,r,1], v3_highECS['tas_ens'][:,r,2], 
+                    color='tab:orange', alpha=0.5 * a)
+    ax.plot(v3_highECS['year'], v3_highECS['tas_ens'][:,r,0], 
+            lw=1.5, c='tab:orange', label=v3_highECS['name'], alpha=a)
+
+    # Observations
+    ax.plot(obs['year'], obs['tas'][:,r], ls='solid', lw=2.0, color='k', label=obs['name'], alpha=a)
+
+    if normyr is None:
+        ax.set_title("%s surface temperature" % (region[r]), loc="right")
+    else:
+        ax.set_title("%s surface temperature anomaly (ref %i-%i)" % (region[r],normyr[0],normyr[1]), loc="right")
+    ax.set_xlabel("Year")
+    ax.set_ylabel("degC")
+    ax.legend(loc="best")
+
+    fig.savefig("ts_tas_%s.pdf" % (region[r]))
+    fig.savefig("ts_tas_%s.png" % (region[r]), dpi=200)
+    plt.clf()
+
+# -----------------------------------------------------------------------------
+if __name__ == "__main__":
+    main()
+
