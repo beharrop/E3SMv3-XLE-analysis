@@ -1,0 +1,126 @@
+# E3SMv3 lowECS individual members (25). modelname sets the figure/scorecard label.
+
+v3.LR.lowECS.historical_0051:
+  modelname: E3SMv3 lowECS 0051
+  color: "#1f77b4"
+  path: /global/cfs/cdirs/e3sm/feng809/v3.XLE/e3sm/output/lowECS/v3.LR.lowECS.historical_0051
+
+v3.LR.lowECS.historical_0091:
+  modelname: E3SMv3 lowECS 0091
+  color: "#ff7f0e"
+  path: /global/cfs/cdirs/e3sm/feng809/v3.XLE/e3sm/output/lowECS/v3.LR.lowECS.historical_0091
+
+v3.LR.lowECS.historical_0101:
+  modelname: E3SMv3 lowECS 0101
+  color: "#2ca02c"
+  path: /global/cfs/cdirs/e3sm/feng809/v3.XLE/e3sm/output/lowECS/v3.LR.lowECS.historical_0101
+
+v3.LR.lowECS.historical_0111:
+  modelname: E3SMv3 lowECS 0111
+  color: "#d62728"
+  path: /global/cfs/cdirs/e3sm/feng809/v3.XLE/e3sm/output/lowECS/v3.LR.lowECS.historical_0111
+
+v3.LR.lowECS.historical_0121:
+  modelname: E3SMv3 lowECS 0121
+  color: "#9467bd"
+  path: /global/cfs/cdirs/e3sm/feng809/v3.XLE/e3sm/output/lowECS/v3.LR.lowECS.historical_0121
+
+v3.LR.lowECS.historical_0131:
+  modelname: E3SMv3 lowECS 0131
+  color: "#8c564b"
+  path: /global/cfs/cdirs/e3sm/feng809/v3.XLE/e3sm/output/lowECS/v3.LR.lowECS.historical_0131
+
+v3.LR.lowECS.historical_0141:
+  modelname: E3SMv3 lowECS 0141
+  color: "#e377c2"
+  path: /global/cfs/cdirs/e3sm/feng809/v3.XLE/e3sm/output/lowECS/v3.LR.lowECS.historical_0141
+
+v3.LR.lowECS.historical_0151:
+  modelname: E3SMv3 lowECS 0151
+  color: "#7f7f7f"
+  path: /global/cfs/cdirs/e3sm/feng809/v3.XLE/e3sm/output/lowECS/v3.LR.lowECS.historical_0151
+
+v3.LR.lowECS.historical_0161:
+  modelname: E3SMv3 lowECS 0161
+  color: "#bcbd22"
+  path: /global/cfs/cdirs/e3sm/feng809/v3.XLE/e3sm/output/lowECS/v3.LR.lowECS.historical_0161
+
+v3.LR.lowECS.historical_0171:
+  modelname: E3SMv3 lowECS 0171
+  color: "#17becf"
+  path: /global/cfs/cdirs/e3sm/feng809/v3.XLE/e3sm/output/lowECS/v3.LR.lowECS.historical_0171
+
+v3.LR.lowECS.historical_0181:
+  modelname: E3SMv3 lowECS 0181
+  color: "#393b79"
+  path: /global/cfs/cdirs/e3sm/feng809/v3.XLE/e3sm/output/lowECS/v3.LR.lowECS.historical_0181
+
+v3.LR.lowECS.historical_0191:
+  modelname: E3SMv3 lowECS 0191
+  color: "#637939"
+  path: /global/cfs/cdirs/e3sm/feng809/v3.XLE/e3sm/output/lowECS/v3.LR.lowECS.historical_0191
+
+v3.LR.lowECS.historical_0201:
+  modelname: E3SMv3 lowECS 0201
+  color: "#8c6d31"
+  path: /global/cfs/cdirs/e3sm/feng809/v3.XLE/e3sm/output/lowECS/v3.LR.lowECS.historical_0201
+
+v3.LR.lowECS.historical_0211:
+  modelname: E3SMv3 lowECS 0211
+  color: "#843c39"
+  path: /global/cfs/cdirs/e3sm/feng809/v3.XLE/e3sm/output/lowECS/v3.LR.lowECS.historical_0211
+
+v3.LR.lowECS.historical_0221:
+  modelname: E3SMv3 lowECS 0221
+  color: "#7b4173"
+  path: /global/cfs/cdirs/e3sm/feng809/v3.XLE/e3sm/output/lowECS/v3.LR.lowECS.historical_0221
+
+v3.LR.lowECS.historical_0231:
+  modelname: E3SMv3 lowECS 0231
+  color: "#3182bd"
+  path: /global/cfs/cdirs/e3sm/feng809/v3.XLE/e3sm/output/lowECS/v3.LR.lowECS.historical_0231
+
+v3.LR.lowECS.historical_0241:
+  modelname: E3SMv3 lowECS 0241
+  color: "#31a354"
+  path: /global/cfs/cdirs/e3sm/feng809/v3.XLE/e3sm/output/lowECS/v3.LR.lowECS.historical_0241
+
+v3.LR.lowECS.historical_0251:
+  modelname: E3SMv3 lowECS 0251
+  color: "#756bb2"
+  path: /global/cfs/cdirs/e3sm/feng809/v3.XLE/e3sm/output/lowECS/v3.LR.lowECS.historical_0251
+
+v3.LR.lowECS.historical_0261:
+  modelname: E3SMv3 lowECS 0261
+  color: "#636363"
+  path: /global/cfs/cdirs/e3sm/feng809/v3.XLE/e3sm/output/lowECS/v3.LR.lowECS.historical_0261
+
+v3.LR.lowECS.historical_0271:
+  modelname: E3SMv3 lowECS 0271
+  color: "#e6550d"
+  path: /global/cfs/cdirs/e3sm/feng809/v3.XLE/e3sm/output/lowECS/v3.LR.lowECS.historical_0271
+
+v3.LR.lowECS.historical_0281:
+  modelname: E3SMv3 lowECS 0281
+  color: "#fd8d3c"
+  path: /global/cfs/cdirs/e3sm/feng809/v3.XLE/e3sm/output/lowECS/v3.LR.lowECS.historical_0281
+
+v3.LR.lowECS.historical_0291:
+  modelname: E3SMv3 lowECS 0291
+  color: "#fdae6b"
+  path: /global/cfs/cdirs/e3sm/feng809/v3.XLE/e3sm/output/lowECS/v3.LR.lowECS.historical_0291
+
+v3.LR.lowECS.historical_0301:
+  modelname: E3SMv3 lowECS 0301
+  color: "#74c476"
+  path: /global/cfs/cdirs/e3sm/feng809/v3.XLE/e3sm/output/lowECS/v3.LR.lowECS.historical_0301
+
+v3.LR.lowECS.historical_0311:
+  modelname: E3SMv3 lowECS 0311
+  color: "#9e9ac8"
+  path: /global/cfs/cdirs/e3sm/feng809/v3.XLE/e3sm/output/lowECS/v3.LR.lowECS.historical_0311
+
+v3.LR.lowECS.historical_0321:
+  modelname: E3SMv3 lowECS 0321
+  color: "#969696"
+  path: /global/cfs/cdirs/e3sm/feng809/v3.XLE/e3sm/output/lowECS/v3.LR.lowECS.historical_0321

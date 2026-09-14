@@ -1,0 +1,20 @@
+# Experiment: E3SM ensembles only (no CMIP6).
+#
+# Models: E3SM (default/highECS/lowECS). Paths match the validated
+# models_combined.yaml. The `modelname` field controls the label shown in ILAMB
+# figures and scorecards.
+
+v3.LR:
+  modelname: E3SMv3 default
+  color: "#31a354"
+  path: /global/cfs/cdirs/e3sm/feng809/v3.XLE/e3sm/output/LR/v3.LR.historical_ens
+
+v3.LR.highECS:
+  modelname: E3SMv3 highECS
+  color: "#e6550d"
+  path: /global/cfs/cdirs/e3sm/feng809/v3.XLE/e3sm/output/highECS/v3.highECS.historical_ens
+
+v3.LR.lowECS:
+  modelname: E3SMv3 lowECS
+  color: "#3182bd"
+  path: /global/cfs/cdirs/e3sm/feng809/v3.XLE/e3sm/output/lowECS/v3.lowECS.historical_ens
