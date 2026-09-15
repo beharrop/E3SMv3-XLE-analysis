@@ -17,8 +17,8 @@ smoke tests one analysis set at a time so failures can be attributed to `LR`,
 
 ### Benchmarking experiments
 
-Seven production experiments compare the E3SM data against different CMIP6
-references at two levels of aggregation: three at the ensemble-mean level and
+Eight production experiments compare the E3SM data against different CMIP6
+references at two levels of aggregation: four at the ensemble-mean level and
 four at the individual-member level. Each has its own model manifest, batch
 script, and build directory, so their outputs and per-model `.pkl` caches never
 collide.
@@ -28,8 +28,15 @@ Ensemble-mean experiments (E3SM ensemble means):
 | Experiment | Manifest | Batch script | Build directory |
 |---|---|---|---|
 | E3SM vs CMIP6 individual models + CMIP6 ensemble | `models_e3sm_vs_cmip6_all.yaml` | `submit_e3sm_vs_cmip6_all.sh` | `.../www/sfeng/v3.XLE/_build_e3sm_vs_cmip6_all` |
+| E3SM vs CMIP6 individual models only (no CMIP6 ensemble) | `models_e3sm_vs_cmip6ind.yaml` | `submit_e3sm_vs_cmip6ind.sh` | `.../www/sfeng/v3.XLE/_build_e3sm_vs_cmip6ind` |
 | E3SM vs CMIP6 ensemble only | `models_e3sm_vs_cmip6ens.yaml` | `submit_e3sm_vs_cmip6ens.sh` | `.../www/sfeng/v3.XLE/_build_e3sm_vs_cmip6ens` |
 | E3SM ensembles only | `models_e3sm_only.yaml` | `submit_e3sm_only.sh` | `.../www/sfeng/v3.XLE/_build_e3sm_only` |
+
+These four differ only in which CMIP6 reference is included: `_all` has both the
+five individual CMIP6 models and the CMIP6 multi-model mean (`CMIP6-MMM`);
+`_cmip6ind` has the five individual CMIP6 models but no `CMIP6-MMM` (useful when
+the multi-model mean would otherwise dominate or clutter the scorecard);
+`_cmip6ens` has only `CMIP6-MMM`; and `e3sm_only` has no CMIP6 reference at all.
 
 Member-level experiments (individual ensemble members):
 
@@ -40,7 +47,7 @@ Member-level experiments (individual ensemble members):
 | lowECS 25 members | `models_members_lowECS.yaml` | `submit_members_lowECS.sh` | `.../www/sfeng/v3.XLE/_build_members_lowECS` |
 | sample-5 members/family + 5 CMIP6 individual | `models_sample5_vs_cmip6.yaml` | `submit_sample5_vs_cmip6.sh` | `.../www/sfeng/v3.XLE/_build_sample5_vs_cmip6` |
 
-Submit each with `sbatch submit_<name>.sh`. All seven reuse the same
+Submit each with `sbatch submit_<name>.sh`. All eight reuse the same
 `ilamb.cfg`, regions, `--study_limits 1985 2014`, `--rmse_score_basis cycle`,
 and the tested MPI-9 Hydra launcher with the communicator-size guard.
 
@@ -51,7 +58,7 @@ fixed random sample of five suffixes (seed 42) reused across all three
 families — `0051, 0111, 0161, 0281, 0311` — plus the five individual CMIP6
 models.
 
-Two confrontations are disabled in the shared `ilamb.cfg` for all seven sets
+Two confrontations are disabled in the shared `ilamb.cfg` for all eight sets
 because no model provides a usable field: CO2 `NOAA.Emulated` (emulated `nbp`)
 and Nitrogen Fixation `Davies-Barnard` (`fBNF`/`NFIX_TO_SMINN`). Both blocks are
 commented out and can be re-enabled by uncommenting them.
@@ -170,7 +177,7 @@ rank and size behavior.
 
 ## Production analysis
 
-The production analyses are the seven benchmarking experiments documented in the
+The production analyses are the eight benchmarking experiments documented in the
 "Benchmarking experiments" section above. Each writes to its own build directory
 under `/global/cfs/cdirs/e3sm/www/sfeng/v3.XLE/_build_*` and is submitted with
 `sbatch submit_<name>.sh`. Run all smoke-test sets successfully before
@@ -211,6 +218,39 @@ To force a clean recompute, use either approach:
 
 Note: if you reprocess or otherwise change the input data, always do a clean
 rerun so ILAMB does not reuse cache generated from the old data.
+
+### Partial cache from an interrupted pair
+
+There is one failure mode the table above does not cover: a model-confrontation
+pair whose computation was interrupted (job timeout or a transient MPI/worker
+hiccup) partway through writing its output. ILAMB writes the pair's `.nc` file
+and some figures before it finishes all of them, so an interrupted pair can be
+left on disk in an incomplete state. On the next resubmit, ILAMB sees that
+output already exists, logs `UsingCachedData`, and "completes" the pair in a few
+seconds without regenerating the missing figures/scores.
+
+Symptoms:
+
+- A single model-confrontation renders with far fewer files than the same pair
+  in another build (for example only the `*_timeint.png` and the `.nc`, but no
+  `*_bias*`, `*_rmse*`, `*_cycle*`, `*_phase*`, or `*score*` plots).
+- The job log shows `UsingCachedData` and a suspiciously short completion time
+  (seconds) for that pair, while the equivalent pair elsewhere took minutes.
+
+Fix — clear only the affected member/confrontation, then resubmit so it
+recomputes while every healthy pair keeps its good cache:
+
+1. Delete that model's top-level `.pkl` (its name is the manifest YAML key, for
+   example `v3.LR.highECS.historical_0161.pkl`).
+2. Delete the stale files for that model under the affected confrontation
+   subtree. Output files are named with the model's `modelname` label, for
+   example `.../HydrologyCycle/EvaporativeFraction/FLUXCOM/*E3SMv3 highECS 0161*`.
+3. Resubmit `submit_<name>.sh`. ILAMB recomputes the cleared pair and reuses the
+   cache for everything else.
+
+This is more surgical than `--clean`, which would recompute every model in the
+build directory. Reserve `--clean` for changed inputs, changed `ilamb.cfg`, or a
+guaranteed-clean reproducible run.
 
 ## Known data limitations
 
