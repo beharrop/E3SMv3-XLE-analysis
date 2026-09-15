@@ -177,6 +177,41 @@ under `/global/cfs/cdirs/e3sm/www/sfeng/v3.XLE/_build_*` and is submitted with
 submitting. Every submit script uses the same Hydra Slurm bootstrap and
 communicator-size guard as the tested smoke script.
 
+## Reruns and caching
+
+ILAMB (2.7.2 here) is incremental. Inside each `--build_dir` it caches results
+at two levels: a per-model file at the top of the build directory (for example
+`_build_members_default/v3.LR.historical_0051.pkl`) and the per
+model-confrontation `.nc` files and figures under the confrontation subtrees
+(for example `EcosystemandCarbonCycle/Biomass/GEOCARBON/`). Before computing any
+model-confrontation pair, ILAMB checks whether its output already exists in the
+build directory and, if so, reuses it instead of recomputing. This is why a
+resubmitted job resumes where it left off rather than starting over.
+
+Whether you need to clear old results before rerunning depends on why you are
+rerunning:
+
+| Situation | Clear old results? | Why |
+|---|---|---|
+| Job timed out or crashed; same inputs and config | No | Resume is desired: reuse the cache and finish the remaining work. |
+| Model input data changed (e.g. reprocessed a variable) | Yes | ILAMB will not detect newer inputs and would silently reuse stale cache. |
+| `ilamb.cfg` changed (weights, scoring, confrontation options) | Yes | New confrontations are computed, but changed scoring on already-cached pairs is not recomputed unless cleared. |
+| Added a brand-new model to the manifest | No | Only the new model is computed; existing models are reused. |
+| Want a guaranteed-clean, reproducible run | Yes | Removes any chance of stale cache contaminating results. |
+
+To force a clean recompute, use either approach:
+
+- Add `--clean` to the `ilamb-run` line in the submit script. Per
+  `ilamb-run --help`, this removes the cached analysis files and recomputes
+  everything in that build directory. This is the recommended approach.
+- Or delete the build directory (or just its `*.pkl` files and confrontation
+  subdirectories) before resubmitting. Because each experiment writes to its own
+  `_build_*` directory, you can wipe only the one you are rerunning without
+  affecting the others.
+
+Note: if you reprocess or otherwise change the input data, always do a clean
+rerun so ILAMB does not reuse cache generated from the old data.
+
 ## Known data limitations
 
 The current E3SM ensemble-mean directories contain land output only. The
