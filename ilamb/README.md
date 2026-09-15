@@ -202,6 +202,50 @@ exist.
 Complete extraction findings and recommended data-preparation work are in
 [`../e3sm/E3SM_EXTRACTION_AUDIT.md`](../e3sm/E3SM_EXTRACTION_AUDIT.md).
 
+## Note: Snow Water Equivalent (`swe`) — E3SM vs CMIP6 consistency
+
+Investigation (2026-09) into why E3SM `swe` scores far below both the CanSISE
+benchmark and the CMIP6 ensemble on the
+`HydrologyCycle/SnowWaterEquivalent/CanSISE` page.
+
+**Variable pairing is correct and consistent.**
+- CMIP6 uses **`snw`** ("Surface Snow Amount", `kg m-2`), mapped 1:1 in
+  `../cmip6/regrid_cmip6.py` (`"snw": "snw"`, table `LImon`) with **no scaling
+  or unit conversion**.
+- E3SM uses **`H2OSNO`** ("snow depth (liquid water)", `kg m-2`) = total-column
+  snow water mass. This is the direct ELM analog of CMIP6 `snw` — same physical
+  quantity, same units, also fed to ILAMB with no conversion.
+- `H2OSNO` is the correct choice. No other ELM field is more consistent with
+  `snw`: `SNOWICE`+`SNOWLIQ` merely sum to ≈ `H2OSNO`; `SNOWDP`/`SNOW_DEPTH` are
+  snow *height* (m, a different quantity); `SNOW` is atmospheric snowfall *flux*;
+  `H2OSNO_TOP` is the top snow layer only (the earlier extraction bug, since
+  fixed). **Do not switch E3SM to a different snow variable.**
+
+**Why H2OSNO vs H2OSNO_TOP made almost no difference to the score.** Both are in
+`kg m-2` and both are dwarfed by CMIP6 `snw`, so the confrontation is dominated
+by a model-design difference (below), not by the top-layer-vs-column choice.
+
+**Root cause of the E3SM low bias is model physics, not extraction.** Raw
+climatological means (both `kg m-2`) measured directly from the files:
+
+| field          | global land | NH>45°N | snowy cells | max cell   |
+|----------------|-------------|---------|-------------|------------|
+| CMIP6 `snw`    | 1568        | 2185    | 9429        | ~389,912   |
+| E3SM `H2OSNO`  | 110         | 77      | 255         | ~1,087     |
+
+CMIP6 `snw` peaks at ~390,000 kg m-2 (≈ 390 m of water) because most CMIP6 land
+models let snow accumulate **without bound** on glaciers/ice sheets. ELM instead
+**caps** snowpack (~1000 kg m-2 max) and routes the excess to ice/runoff (see the
+ELM field `QSNWCPICE`, "excess snowfall due to snow capping"). This single
+design difference explains most of the ~20–30× gap and is real physics, not an
+inconsistency in the workflow.
+
+**Open item (ILAMB-side, not extraction).** The CanSISE reference is in `m`
+while both models are in `kg m-2`; the residual model-vs-benchmark bias is worth
+confirming against the `kg m-2 -> cm` conversion `ilamb3` applies to `swe`, to
+ensure the conversion is identical for model and reference. No change to the
+E3SM or CMIP6 data preparation is indicated.
+
 ## Interpreting common failures
 
 - `VarNotInModel` means ILAMB could not find the required variable, an accepted
