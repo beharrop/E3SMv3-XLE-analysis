@@ -1,4 +1,4 @@
-# ILAMB setup for the v3.XLE analysis
+ ILAMB setup for the v3.XLE analysis
 
 This directory contains the ILAMB configuration and launch scripts used to
 compare the v3.XLE historical ensembles with selected CMIP6 models. Run the
@@ -201,76 +201,6 @@ exist.
 
 Complete extraction findings and recommended data-preparation work are in
 [`../e3sm/E3SM_EXTRACTION_AUDIT.md`](../e3sm/E3SM_EXTRACTION_AUDIT.md).
-
-## Note: Snow Water Equivalent (`swe`) — E3SM vs CMIP6 consistency
-
-Investigation (2026-09) into why E3SM `swe` scores far below both the CanSISE
-benchmark and the CMIP6 ensemble on the
-`HydrologyCycle/SnowWaterEquivalent/CanSISE` page.
-
-**Variable pairing is correct and consistent.**
-- CMIP6 uses **`snw`** ("Surface Snow Amount", `kg m-2`), mapped 1:1 in
-  `../cmip6/regrid_cmip6.py` (`"snw": "snw"`, table `LImon`) with **no scaling
-  or unit conversion**.
-- E3SM uses **`H2OSNO`** ("snow depth (liquid water)", `kg m-2`) = total-column
-  snow water mass. This is the direct ELM analog of CMIP6 `snw` — same physical
-  quantity, same units, also fed to ILAMB with no conversion.
-- `H2OSNO` is the correct choice. No other ELM field is more consistent with
-  `snw`: `SNOWICE`+`SNOWLIQ` merely sum to ≈ `H2OSNO`; `SNOWDP`/`SNOW_DEPTH` are
-  snow *height* (m, a different quantity); `SNOW` is atmospheric snowfall *flux*;
-  `H2OSNO_TOP` is the top snow layer only (the earlier extraction bug, since
-  fixed). **Do not switch E3SM to a different snow variable.**
-
-**Why H2OSNO vs H2OSNO_TOP mattered but the *published* page didn't move.**
-`H2OSNO_TOP` (top snow layer only) is roughly 20–30× smaller than full-column
-`H2OSNO`. The published `swe` page still reflects the old top-layer numbers — not
-because the choice is unimportant, but because the ILAMB build was **not
-recomputed** after the fix (see root cause below).
-
-**Root cause of the low E3SM `swe` on the portal: a stale ILAMB build, not
-physics and not units.** Verified end-to-end in the `ilamb` conda env
-(`ilamb-run` / classic `ILAMB`, *not* the `ilamb3` package):
-
-- The unit path is identical for both models. `ILAMB.Variable.convert()` turns
-  `kg m-2` into `cm` using water density 998.2 kg m-3 (1 kg m-2 = 0.1 cm), and
-  `ConfSWE.stageData` subtracts each cell's temporal minimum for *both* the model
-  and the reference. No per-model scaling exists.
-- Reading the **current, fixed** E3SM `swe` file (`H2OSNO`, `kg m-2`) through
-  ILAMB's own `ConfSWE` + `integrateInTime(mean=True)` + `convert("cm")` yields a
-  global grid mean of **2.54 cm** (max ~102 cm) — on par with CMIP6 `snw`
-  (**2.54 cm**) and *above* the CanSISE benchmark (**~2.1 cm**).
-- But the published build stores only **0.085 cm** (max 0.90 cm) for
-  `E3SMv3 default` — ~30× too small and consistent with the pre-fix
-  `H2OSNO_TOP` top-layer data.
-- Mechanism: `ilamb-run` skips any model whose output `CanSISE_<model>.nc`
-  carries the global attribute `complete = 1` (it only re-runs incomplete/missing
-  files). The E3SM build files predate the `H2OSNO` fix, are marked complete, and
-  were therefore reused. Their recent mtimes are misleading: the end-of-run
-  overall-score pass reopens each file `r+` and rewrites only the scalars, so the
-  gridded `timeint_of_swe` (and its cm values) were never regenerated.
-
-For reference, raw climatological means measured directly from the files
-(all `kg m-2`):
-
-| field          | global land | NH>45°N | max cell   |
-|----------------|-------------|---------|------------|
-| CMIP6 `snw`    | 1568        | 2185    | ~389,912   |
-| E3SM `H2OSNO`  | 110         | 77      | ~1,087     |
-
-CMIP6 `snw` reaches ~390,000 kg m-2 on unbounded glacier/ice-sheet accumulation
-while ELM caps snowpack (~1000 kg m-2 max, `QSNWCPICE`). That difference shows up
-in the raw absolute means and in the spatial pattern, but it is **not** what
-drives the tiny published E3SM score — after ILAMB's per-cell min-subtraction the
-seasonal SWE signal that CanSISE scores is comparable across E3SM, CMIP6, and the
-benchmark (all ≈ 2–3 cm globally).
-
-**Action required.** Regenerate the `swe`/`CanSISE` confrontation so the portal
-uses the fixed `H2OSNO` data. Either delete the stale outputs
-(`_build_e3sm_vs_cmip6ens/HydrologyCycle/SnowWaterEquivalent/CanSISE/CanSISE_E3SMv3*.nc`)
-or run `ilamb-run` without the skip-complete cache for this confrontation. After
-that, E3SM `swe` should land near the benchmark/CMIP6 scale. Keep `H2OSNO` as the
-E3SM variable; the pairing with CMIP6 `snw` is correct.
-
 
 ## Interpreting common failures
 
