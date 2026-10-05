@@ -20,9 +20,9 @@ Input:
 /global/cfs/cdirs/m3522/datalake/ERA5/postprocess/pr.e5.accum_daily_utc00/pr.e5.accum_daily.YYYY.nc
 
 Output:
-/pscratch/sd/m/mahf708/ERA5/ETCCDI/results/by_year/ERA5_etccdi_YYYY.nc  (per-year checkpoints)
-/pscratch/sd/m/mahf708/ERA5/ETCCDI/results/ERA5_etccdi.nc              (combined)
-/pscratch/sd/m/mahf708/ERA5/ETCCDI/figures/*.png
+/pscratch/sd/b/beharrop/ERA5/ETCCDI/results/by_year/ERA5_etccdi_YYYY.nc  (per-year checkpoints)
+/pscratch/sd/b/beharrop/ERA5/ETCCDI/results/ERA5_etccdi.nc              (combined)
+/pscratch/sd/b/beharrop/ERA5/ETCCDI/figures/*.png
 
 Usage:
 python ct-test.py                              # process 1980-2024 and plot
@@ -41,7 +41,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
 DATA_ROOT   = Path("/global/cfs/cdirs/m3522/datalake/ERA5/postprocess")
-OUTPUT_ROOT = Path("/pscratch/sd/m/mahf708/ERA5/ETCCDI")
+OUTPUT_ROOT = Path("/pscratch/sd/b/beharrop/ERA5/ETCCDI")
 RESULTS_DIR = OUTPUT_ROOT / "results"
 YEARS_DIR   = RESULTS_DIR / "by_year"
 FIGS_DIR    = OUTPUT_ROOT / "figures"
