@@ -1,33 +1,18 @@
-""" ETCCDI climate extreme indices from ERA5 daily data.
-Loads daily surface temperature (tasmax, tasmin) and precipitation (pr)
-from annual NetCDF files, computes tas as mean of tasmax and tasmin,
-then computes standard ETCCDI indices using xclim.
+"""Compute ETCCDI climate indices from daily ERA5 or E3SM data.
 
-Processes one year at a time and checkpoints each year to its own file.
-The original version built one dask graph over the full 45-year record
-across 3 variables and only forced computation at to_netcdf() — several
-indices (notably the consecutive dry/wet day counts) ended up needing
-the whole record in memory at once, which OOM-killed the job around
-~450GB RSS on a 503GB node. Every index here is a freq="YS" annual
-index with no cross-year dependency, so per-year chunking is exact,
-not an approximation — and it caps peak memory at ~3 files/year
-(~4.5GB) regardless of record length, plus survives a crash without
-losing already-computed years.
+ERA5 input is read one year at a time from annual files. E3SM input is read
+from five-year files, with one output checkpoint per input chunk. E3SM uses
+TREFHT directly for daily mean temperature and converts PRECT from m s-1 to
+kg m-2 s-1 before computing precipitation indices.
 
-Input:
-/global/cfs/cdirs/m3522/datalake/ERA5/postprocess/tasmax.e5.accum_daily/tasmax.e5.accum_daily.YYYY.nc
-/global/cfs/cdirs/m3522/datalake/ERA5/postprocess/tasmin.e5.accum_daily/tasmin.e5.accum_daily.YYYY.nc
-/global/cfs/cdirs/m3522/datalake/ERA5/postprocess/pr.e5.accum_daily_utc00/pr.e5.accum_daily.YYYY.nc
+Examples:
+    python etccdi.py
+    python etccdi.py --start_year 2015 --end_year 2020
+    python etccdi.py --source e3sm --case v3.LR.historical_0051
+    python etccdi.py --source e3sm --case v3.LR.historical_0051 --make_plots
+    python etccdi.py --source e3sm --case v3.LR.historical_0051 --plots_only
 
-Output:
-/pscratch/sd/b/beharrop/ERA5/ETCCDI/results/by_year/ERA5_etccdi_YYYY.nc  (per-year checkpoints)
-/pscratch/sd/b/beharrop/ERA5/ETCCDI/results/ERA5_etccdi.nc              (combined)
-/pscratch/sd/b/beharrop/ERA5/ETCCDI/figures/*.png
-
-Usage:
-python ct-test.py                              # process 1980-2024 and plot
-python ct-test.py --start_year 2015 --end_year 2020
-python ct-test.py --plots_only                 # skip computation, just plot
+Plots are not generated unless --make_plots or --plots_only is specified.
 """
 
 import argparse
@@ -40,16 +25,22 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
-DATA_ROOT   = Path("/global/cfs/cdirs/m3522/datalake/ERA5/postprocess")
-OUTPUT_ROOT = Path("/pscratch/sd/b/beharrop/ERA5/ETCCDI")
-RESULTS_DIR = OUTPUT_ROOT / "results"
-YEARS_DIR   = RESULTS_DIR / "by_year"
-FIGS_DIR    = OUTPUT_ROOT / "figures"
+DATA_ROOT = Path("/global/cfs/cdirs/m3522/datalake/ERA5/postprocess")
+E3SM_DATA_ROOT = Path("/global/cfs/cdirs/e3smdata/simulations/v3.XLE")
+E3SM_DAILY_RELATIVE_PATH = Path("post/atm/180x360_aave/ts/daily/5yr")
+
+ERA5_OUTPUT_ROOT = Path("/pscratch/sd/b/beharrop/ERA5/ETCCDI")
+E3SM_OUTPUT_ROOT = Path("/pscratch/sd/b/beharrop/E3SMv3/XLE/ETCCDI")
 
 START_YEAR = 1980
 END_YEAR   = 2024
+E3SM_START_YEAR = 1985
+E3SM_END_YEAR   = 2014
 
-RESULTS_NC = RESULTS_DIR / "ERA5_etccdi.nc"
+RESULTS_DIR = ERA5_OUTPUT_ROOT / "results"
+YEARS_DIR   = RESULTS_DIR / "by_year"
+FIGS_DIR    = ERA5_OUTPUT_ROOT / "figures"
+RESULTS_NC  = RESULTS_DIR / "ERA5_etccdi.nc"
 
 
 def _ts(msg):
@@ -101,6 +92,121 @@ def load_one_year(year):
     return ds.load()
 
 
+def _file_year_bounds(path):
+    """Return start/end years from a variable_YYYYMM_YYYYMM or _YYYY_YYYY name."""
+    parts = path.stem.rsplit("_", 2)
+    if (
+        len(parts) != 3
+        or len(parts[1]) not in {4, 6}
+        or len(parts[2]) not in {4, 6}
+    ):
+        raise ValueError(f"Unexpected five-year E3SM filename: {path.name}")
+    return int(parts[1][:4]), int(parts[2][:4])
+
+
+def find_e3sm_chunks(input_dir, start_year, end_year):
+    """Find E3SM five-year TREFHT files overlapping the requested years."""
+    chunks = []
+    for path in sorted(input_dir.glob("TREFHT_*.nc")):
+        chunk_start, chunk_end = _file_year_bounds(path)
+        if chunk_end >= start_year and chunk_start <= end_year:
+            chunks.append((chunk_start, chunk_end))
+    if not chunks:
+        raise FileNotFoundError(
+            f"No E3SM daily TREFHT files found for {start_year}-{end_year} in {input_dir}"
+        )
+    return chunks
+
+
+def _load_e3sm_variable(path, variable):
+    with xr.open_dataset(path) as source:
+        if variable not in source:
+            raise KeyError(f"Variable {variable!r} not found in {path}")
+        data = source[variable]
+        if "time_bnds" not in source:
+            raise KeyError(f"Time bounds 'time_bnds' not found in {path}")
+        time_bounds = source["time_bnds"]
+        bound_dims  = [dim for dim in time_bounds.dims if dim != "time"]
+        if "time" not in time_bounds.dims or len(bound_dims) != 1:
+            raise ValueError(f"Unexpected time_bnds dimensions {time_bounds.dims} in {path}")
+        time_attrs    = dict(data["time"].attrs)
+        time_encoding = dict(data["time"].encoding)
+        left_bound    = time_bounds.isel({bound_dims[0]: 0}, drop=True)
+        data          = data.assign_coords(time=("time", left_bound.values))
+        data["time"].attrs    = time_attrs
+        data["time"].encoding = time_encoding
+        rename = {
+            old: new
+            for old, new in (("latitude", "lat"), ("longitude", "lon"))
+            if old in data.dims or old in data.coords
+        }
+        return data.rename(rename).load()
+
+
+def load_e3sm_chunk(case, start_year, end_year):
+    """Load one E3SM five-year chunk and normalize it for the xclim calls."""
+    input_dir        = E3SM_DATA_ROOT / case / E3SM_DAILY_RELATIVE_PATH
+    start_stamp      = f"{start_year}01"
+    end_stamp        = f"{end_year}12"
+    source_variables = ("TREFHT", "TREFHTMX", "TREFHTMN", "PRECT")
+    arrays           = {}
+
+    for variable in source_variables:
+        path = input_dir / f"{variable}_{start_stamp}_{end_stamp}.nc"
+        if not path.exists():
+            raise FileNotFoundError(f"Missing E3SM input file: {path}")
+        arrays[variable] = _load_e3sm_variable(path, variable)
+
+    try:
+        tas, tasmax, tasmin, prect = xr.align(
+            *(arrays[name] for name in source_variables), join="exact", copy=False
+        )
+    except ValueError as exc:
+        raise ValueError(
+            f"E3SM variables do not share identical time and spatial coordinates "
+            f"for {start_year}-{end_year}"
+        ) from exc
+
+    for variable, data in zip(source_variables[:3], (tas, tasmax, tasmin)):
+        units = data.attrs.get("units", "").strip().lower()
+        if units not in {"k", "kelvin"}:
+            raise ValueError(f"Expected {variable} in kelvin, found units {units!r}")
+
+    prect_units = prect.attrs.get("units", "").strip().lower().replace(" ", "")
+    if prect_units not in {"ms-1", "ms^-1", "ms**-1", "m/s"}:
+        raise ValueError(f"Expected PRECT in m s-1, found units {prect.attrs.get('units')!r}")
+
+    ds = xr.Dataset({
+        "tas": tas.rename("tas"),
+        "tasmax": tasmax.rename("tasmax"),
+        "tasmin": tasmin.rename("tasmin"),
+        "pr": (prect * 1000.0).rename("pr"),
+    })
+    ds["tas"].attrs    = dict(ds["tas"].attrs)
+    ds["tas"].attrs.update({"units": "K", 
+                            "cell_methods": "time: mean",
+                            "standard_name": "air_temperature", 
+                            "long_name": "Daily Mean Surface Temperature"})
+    ds["tasmax"].attrs = dict(ds["tasmax"].attrs)
+    ds["tasmax"].attrs.update({"units": "K", 
+                               "cell_methods": "time: maximum",
+                               "standard_name": "air_temperature",
+                               "long_name": "Daily Maximum Surface Temperature"})
+    ds["tasmin"].attrs = dict(ds["tasmin"].attrs)
+    ds["tasmin"].attrs.update({"units": "K", 
+                               "cell_methods": "time: minimum",
+                               "standard_name": "air_temperature",
+                               "long_name": "Daily Minimum Surface Temperature"})
+    ds["pr"].attrs     = dict(prect.attrs)
+    ds["pr"].attrs.update({
+        "units": "kg m-2 s-1",
+        "standard_name": "precipitation_flux",
+        "cell_methods": "time: mean",
+        "long_name": "Precipitation",
+    })
+    return ds
+
+
 def growing_season_length_global(tas):
     """GSL, computed globally with xclim's default mid_date="07-01".
 
@@ -120,13 +226,13 @@ def growing_season_length_global(tas):
 
 
 def compute_etccdi_indices(ds_daily):
-    """Compute ETCCDI indices from one year of daily data using xclim."""
+    """Compute annual ETCCDI indices from one or more years of daily data."""
     from xclim import atmos
 
     tasmax = ds_daily["tasmax"]
     tasmin = ds_daily["tasmin"]
     tas    = ds_daily["tas"]
-    pr     = ds_daily["pr"]  # already in kg m-2 s-1, no conversion needed
+    pr     = ds_daily["pr"]  # normalized to kg m-2 s-1 by the source loader
 
     results = {}
 
@@ -143,7 +249,7 @@ def compute_etccdi_indices(ds_daily):
     results["GSL"] = growing_season_length_global(tas)
 
     # ── Precipitation indices ─────────────────────────────────────────────
-    # pr is already in kg m-2 s-1, pass directly to xclim
+    # pr is normalized to kg m-2 s-1 before reaching xclim.
     results["RX1day"]  = atmos.max_1day_precipitation_amount(pr=pr, freq="YS")
     results["RX5day"]  = atmos.max_n_day_precipitation_amount(pr=pr, window=5, freq="YS")
     results["SDII"]    = atmos.daily_pr_intensity(pr=pr, thresh="1 mm/day", freq="YS")
@@ -170,20 +276,57 @@ def process_year(year):
     ds_daily.close()
     del ds_daily
 
-    _ts(f"{year}: saving → {out_f}")
+    _ts(f"{year}: saving -> {out_f}")
     ds_etccdi.to_netcdf(out_f)
     del ds_etccdi
 
 
-def combine_years(start_year, end_year):
-    files = sorted(YEARS_DIR.glob("ERA5_etccdi_*.nc"))
+def combine_years(start_year, end_year, years_dir=YEARS_DIR, results_nc=RESULTS_NC):
+    files = sorted(years_dir.glob("ERA5_etccdi_*.nc"))
     files = [f for f in files if start_year <= int(f.stem.split("_")[-1]) <= end_year]
     if not files:
         raise FileNotFoundError("No per-year files found — run without --plots_only first.")
 
-    _ts(f"Combining {len(files)} yearly files → {RESULTS_NC}")
+    _ts(f"Combining {len(files)} yearly files -> {results_nc}")
     ds_all = xr.open_mfdataset([str(f) for f in files], combine="by_coords", decode_timedelta=False).load()
-    ds_all.to_netcdf(RESULTS_NC)
+    ds_all.to_netcdf(results_nc)
+    return ds_all
+
+
+def process_e3sm_chunk(case, start_year, end_year, years_dir):
+    out_file = years_dir / f"E3SM_etccdi_{start_year}_{end_year}.nc"
+    if out_file.exists():
+        _ts(f"E3SM {case} {start_year}-{end_year}: already computed, skipping")
+        return
+
+    _ts(f"E3SM {case} {start_year}-{end_year}: loading five-year chunk...")
+    ds_daily = load_e3sm_chunk(case, start_year, end_year)
+    _ts(f"E3SM {case} {start_year}-{end_year}: computing indices...")
+    ds_etccdi = compute_etccdi_indices(ds_daily)
+    ds_daily.close()
+    ds_etccdi.attrs.update({"source": "E3SM", "case": case})
+
+    _ts(f"E3SM {case} {start_year}-{end_year}: saving -> {out_file}")
+    ds_etccdi.to_netcdf(out_file)
+    ds_etccdi.close()
+
+
+def combine_e3sm_chunks(start_year, end_year, years_dir, results_nc):
+    files = []
+    for path in sorted(years_dir.glob("E3SM_etccdi_*.nc")):
+        chunk_start, chunk_end = _file_year_bounds(path)
+        if chunk_end >= start_year and chunk_start <= end_year:
+            files.append(path)
+    if not files:
+        raise FileNotFoundError("No E3SM chunk files found — run without --plots_only first.")
+
+    _ts(f"Combining {len(files)} E3SM chunks -> {results_nc}")
+    ds_all = xr.open_mfdataset(
+        [str(path) for path in files], combine="by_coords", decode_timedelta=False
+    ).load()
+    year = ds_all["time"].dt.year
+    ds_all = ds_all.sel(time=(year >= start_year) & (year <= end_year))
+    ds_all.to_netcdf(results_nc)
     return ds_all
 
 
@@ -194,9 +337,10 @@ def area_weighted_mean(da, lat):
     return da.weighted(xr.DataArray(cos_w, dims="lat", coords={"lat": lat})).mean(dim=["lat", "lon"])
 
 
-def make_plots(ds_etccdi):
+def make_plots(ds_etccdi, figs_dir=FIGS_DIR, label="ERA5", filename_prefix="ERA5"):
     """Generate summary plots for each ETCCDI index."""
     _ts("Generating plots...")
+    figs_dir.mkdir(parents=True, exist_ok=True)
     lat = ds_etccdi["lat"].values
 
     for var in ds_etccdi.data_vars:
@@ -208,47 +352,92 @@ def make_plots(ds_etccdi):
         # the poles on this regular-angle grid)
         fig, ax = plt.subplots(figsize=(10, 4))
         area_weighted_mean(da, lat).plot(ax=ax)
-        ax.set_title(f"ERA5 — {var} area-weighted global mean time series")
+        ax.set_title(f"{label} — {var} area-weighted global mean time series")
         ax.set_xlabel("Year")
         ax.set_ylabel(ds_etccdi[var].attrs.get("units", ""))
         plt.tight_layout()
-        fig.savefig(FIGS_DIR / f"ERA5_{var}_timeseries.png", dpi=150)
+        fig.savefig(figs_dir / f"{filename_prefix}_{var}_timeseries.png", dpi=150)
         plt.close(fig)
 
         # Time-mean map
         fig, ax = plt.subplots(figsize=(12, 5))
         da.mean(dim="time").plot(ax=ax, cmap="viridis")
-        ax.set_title(f"ERA5 — {var} time mean")
+        ax.set_title(f"{label} — {var} time mean")
         plt.tight_layout()
-        fig.savefig(FIGS_DIR / f"ERA5_{var}_map.png", dpi=150)
+        fig.savefig(figs_dir / f"{filename_prefix}_{var}_map.png", dpi=150)
         plt.close(fig)
 
     _ts("Plots saved.")
 
 
 def main():
-    parser = argparse.ArgumentParser(description="ETCCDI indices from ERA5 daily data")
-    parser.add_argument("--start_year", type=int, default=START_YEAR)
-    parser.add_argument("--end_year", type=int, default=END_YEAR)
+    parser = argparse.ArgumentParser(description="Compute ETCCDI indices from ERA5 or E3SM daily data")
+    parser.add_argument("--source", choices=("era5", "e3sm"), default="era5",
+                        help="Input data source (default: era5)")
+    parser.add_argument("--case", help="E3SM case name, required when --source=e3sm")
+    parser.add_argument("--start_year", type=int,
+                        help="First year to process (default: source-specific)")
+    parser.add_argument("--end_year", type=int,
+                        help="Last year to process (default: source-specific)")
     parser.add_argument("--plots_only", action="store_true",
-                        help="Skip computation, just regenerate plots")
+                        help="Skip computation and generate plots from existing results")
+    parser.add_argument("--make_plots", action="store_true",
+                        help="Generate plots after processing (off by default)")
     args = parser.parse_args()
 
-    RESULTS_DIR.mkdir(parents=True, exist_ok=True)
-    YEARS_DIR.mkdir(parents=True, exist_ok=True)
-    FIGS_DIR.mkdir(parents=True, exist_ok=True)
+    if args.source == "e3sm" and not args.case:
+        parser.error("--case is required when --source=e3sm")
+    if args.source == "era5" and args.case:
+        parser.error("--case can only be used with --source=e3sm")
+    if args.case and ("/" in args.case or "\\" in args.case):
+        parser.error("--case must be a case name, not a path")
+
+    default_start = E3SM_START_YEAR if args.source == "e3sm" else START_YEAR
+    default_end   = E3SM_END_YEAR   if args.source == "e3sm" else END_YEAR
+    start_year    = args.start_year if args.start_year is not None else default_start
+    end_year      = args.end_year   if args.end_year   is not None else default_end
+    if start_year > end_year:
+        parser.error("--start_year must be less than or equal to --end_year")
+
+    if args.source == "era5":
+        output_root     = ERA5_OUTPUT_ROOT
+        results_nc      = output_root / "results" / "ERA5_etccdi.nc"
+        years_dir       = output_root / "results" / "by_year"
+        figs_dir        = output_root / "figures"
+        output_label    = "ERA5"
+        filename_prefix = "ERA5"
+    else:
+        output_root     = E3SM_OUTPUT_ROOT / args.case
+        results_nc      = output_root / "results" / "E3SM_etccdi.nc"
+        years_dir       = output_root / "results" / "by_year"
+        figs_dir        = output_root / "figures"
+        output_label    = f"E3SM {args.case}"
+        filename_prefix = f"E3SM_{args.case}"
+
+    results_nc.parent.mkdir(parents=True, exist_ok=True)
+    years_dir.mkdir(parents=True, exist_ok=True)
 
     if not args.plots_only:
-        for year in range(args.start_year, args.end_year + 1):
-            process_year(year)
+        if args.source == "era5":
+            for year in range(start_year, end_year + 1):
+                process_year(year)
+        else:
+            input_dir = E3SM_DATA_ROOT / args.case / E3SM_DAILY_RELATIVE_PATH
+            chunks = find_e3sm_chunks(input_dir, start_year, end_year)
+            for chunk_start, chunk_end in chunks:
+                process_e3sm_chunk(args.case, chunk_start, chunk_end, years_dir)
 
-    if args.plots_only and RESULTS_NC.exists():
-        _ts(f"Loading combined results from {RESULTS_NC} …")
-        ds_etccdi = xr.open_dataset(RESULTS_NC, decode_timedelta=False)
+    if args.plots_only and results_nc.exists():
+        _ts(f"Loading combined results from {results_nc}...")
+        ds_etccdi = xr.open_dataset(results_nc, decode_timedelta=False)
     else:
-        ds_etccdi = combine_years(args.start_year, args.end_year)
+        if args.source == "era5":
+            ds_etccdi = combine_years(start_year, end_year, years_dir, results_nc)
+        else:
+            ds_etccdi = combine_e3sm_chunks(start_year, end_year, years_dir, results_nc)
 
-    make_plots(ds_etccdi)
+    if args.make_plots or args.plots_only:
+        make_plots(ds_etccdi, figs_dir, output_label, filename_prefix)
     _ts("All done.")
 
 
