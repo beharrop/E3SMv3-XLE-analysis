@@ -1,0 +1,3 @@
+hilat    ,      High Latitude,     50,    90,  -180, 180
+eqaf     ,  Equatorial Africa, -10.25, 10.25,   -21, 53
+temperate, Temperate Latitudes,    35,    67,  -180, 180

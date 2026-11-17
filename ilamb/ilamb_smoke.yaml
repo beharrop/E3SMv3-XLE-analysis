@@ -1,0 +1,6 @@
+# Single-model manifest retained for direct LR-only smoke-test invocations.
+
+v3.LR:
+  modelname: v3.LR
+  color: "#31a354"
+  path: /global/cfs/cdirs/e3sm/feng809/v3.XLE/e3sm/output_ilamb/LR

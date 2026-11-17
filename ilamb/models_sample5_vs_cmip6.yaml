@@ -1,0 +1,102 @@
+# Sample-5 E3SM members (suffixes 0051,0111,0161,0281,0311; seed 42) from each
+# family + 5 individual CMIP6 models. modelname sets the figure/scorecard label.
+
+v3.LR.historical_0051:
+  modelname: E3SMv3 default 0051
+  color: "#31a354"
+  path: /global/cfs/cdirs/e3sm/feng809/v3.XLE/e3sm/output/LR/v3.LR.historical_0051
+
+v3.LR.historical_0111:
+  modelname: E3SMv3 default 0111
+  color: "#31a354"
+  path: /global/cfs/cdirs/e3sm/feng809/v3.XLE/e3sm/output/LR/v3.LR.historical_0111
+
+v3.LR.historical_0161:
+  modelname: E3SMv3 default 0161
+  color: "#31a354"
+  path: /global/cfs/cdirs/e3sm/feng809/v3.XLE/e3sm/output/LR/v3.LR.historical_0161
+
+v3.LR.historical_0281:
+  modelname: E3SMv3 default 0281
+  color: "#31a354"
+  path: /global/cfs/cdirs/e3sm/feng809/v3.XLE/e3sm/output/LR/v3.LR.historical_0281
+
+v3.LR.historical_0311:
+  modelname: E3SMv3 default 0311
+  color: "#31a354"
+  path: /global/cfs/cdirs/e3sm/feng809/v3.XLE/e3sm/output/LR/v3.LR.historical_0311
+
+v3.LR.highECS.historical_0051:
+  modelname: E3SMv3 highECS 0051
+  color: "#e6550d"
+  path: /global/cfs/cdirs/e3sm/feng809/v3.XLE/e3sm/output/highECS/v3.LR.highECS.historical_0051
+
+v3.LR.highECS.historical_0111:
+  modelname: E3SMv3 highECS 0111
+  color: "#e6550d"
+  path: /global/cfs/cdirs/e3sm/feng809/v3.XLE/e3sm/output/highECS/v3.LR.highECS.historical_0111
+
+v3.LR.highECS.historical_0161:
+  modelname: E3SMv3 highECS 0161
+  color: "#e6550d"
+  path: /global/cfs/cdirs/e3sm/feng809/v3.XLE/e3sm/output/highECS/v3.LR.highECS.historical_0161
+
+v3.LR.highECS.historical_0281:
+  modelname: E3SMv3 highECS 0281
+  color: "#e6550d"
+  path: /global/cfs/cdirs/e3sm/feng809/v3.XLE/e3sm/output/highECS/v3.LR.highECS.historical_0281
+
+v3.LR.highECS.historical_0311:
+  modelname: E3SMv3 highECS 0311
+  color: "#e6550d"
+  path: /global/cfs/cdirs/e3sm/feng809/v3.XLE/e3sm/output/highECS/v3.LR.highECS.historical_0311
+
+v3.LR.lowECS.historical_0051:
+  modelname: E3SMv3 lowECS 0051
+  color: "#3182bd"
+  path: /global/cfs/cdirs/e3sm/feng809/v3.XLE/e3sm/output/lowECS/v3.LR.lowECS.historical_0051
+
+v3.LR.lowECS.historical_0111:
+  modelname: E3SMv3 lowECS 0111
+  color: "#3182bd"
+  path: /global/cfs/cdirs/e3sm/feng809/v3.XLE/e3sm/output/lowECS/v3.LR.lowECS.historical_0111
+
+v3.LR.lowECS.historical_0161:
+  modelname: E3SMv3 lowECS 0161
+  color: "#3182bd"
+  path: /global/cfs/cdirs/e3sm/feng809/v3.XLE/e3sm/output/lowECS/v3.LR.lowECS.historical_0161
+
+v3.LR.lowECS.historical_0281:
+  modelname: E3SMv3 lowECS 0281
+  color: "#3182bd"
+  path: /global/cfs/cdirs/e3sm/feng809/v3.XLE/e3sm/output/lowECS/v3.LR.lowECS.historical_0281
+
+v3.LR.lowECS.historical_0311:
+  modelname: E3SMv3 lowECS 0311
+  color: "#3182bd"
+  path: /global/cfs/cdirs/e3sm/feng809/v3.XLE/e3sm/output/lowECS/v3.LR.lowECS.historical_0311
+
+MIROC-ES2L:
+  modelname: MIROC-ES2L
+  color: "#3183be"
+  path: /global/cfs/cdirs/e3sm/feng809/v3.XLE/cmip6/output/MIROC-ES2L
+
+CanESM5:
+  modelname: CanESM5
+  color: "#637939"
+  path: /global/cfs/cdirs/e3sm/feng809/v3.XLE/cmip6/output/CanESM5
+
+IPSL-CM6A-LR:
+  modelname: IPSL-CM6A-LR
+  color: "#756bb2"
+  path: /global/cfs/cdirs/e3sm/feng809/v3.XLE/cmip6/output/IPSL-CM6A-LR
+
+NorESM2-LM:
+  modelname: NorESM2-LM
+  color: "#2ca02c"
+  path: /global/cfs/cdirs/e3sm/feng809/v3.XLE/cmip6/output/NorESM2-LM
+
+UKESM1-0-LL:
+  modelname: UKESM1-0-LL
+  color: "#9467bd"
+  path: /global/cfs/cdirs/e3sm/feng809/v3.XLE/cmip6/output/UKESM1-0-LL

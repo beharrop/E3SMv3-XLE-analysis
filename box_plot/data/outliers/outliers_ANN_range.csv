@@ -1,0 +1,1 @@
+variable,group,member,units,observation,first_month,last_month,months,land_coverage_fraction,source,model_calendar,reference_calendar,plot_label,plot_role,rmse_ANN,rmse_DJF,rmse_MAM,rmse_JJA,rmse_SON,plotted_season,plotted_value,direction,lower_fence,upper_fence
