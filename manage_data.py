@@ -88,6 +88,7 @@ GROUP_VARIABLES = {
         {"filepath": "post/atm/180x360_aave/ts/monthly/5yr/TS_{start}_{end}.nc", "start": "185001", "end": "202412"},
         {"filepath": "post/atm/180x360_aave/ts/monthly/5yr/TREFHT_{start}_{end}.nc", "start": "185001", "end": "202412"},
         {"filepath": "post/atm/180x360_aave/ts/monthly/5yr/OCNFRAC_{start}_{end}.nc", "start": "185001", "end": "202412"},
+        {"filepath": "post/atm/180x360_aave/ts/monthly/5yr/U_{start}_{end}.nc", "start": "198501", "end": "201412"},
         # Atmosphere seasonal climatology (ANN, DJF, MAM, JJA, SON)
         {"filepath": "post/atm/180x360_aave/clim/30yr/{casename}_{season}_{start}_{end}_climo.nc", "climo_year_start": "1985", "climo_year_end": "2014", "seasons": ATM_CLIMO_SEASONS},
         # Ocean masked climatology (sst, sss, mld; seasons: ANN, JFM, JAS)
@@ -122,6 +123,7 @@ GROUP_VARIABLES = {
         {"filepath": "post/atm/180x360_aave/ts/monthly/5yr/TS_{start}_{end}.nc", "start": "185001", "end": "202412"},
         {"filepath": "post/atm/180x360_aave/ts/monthly/5yr/TREFHT_{start}_{end}.nc", "start": "185001", "end": "202412"},
         {"filepath": "post/atm/180x360_aave/ts/monthly/5yr/OCNFRAC_{start}_{end}.nc", "start": "185001", "end": "202412"},
+        {"filepath": "post/atm/180x360_aave/ts/monthly/5yr/U_{start}_{end}.nc", "start": "198501", "end": "201412"},
         # Atmosphere seasonal climatology (ANN, DJF, MAM, JJA, SON)
         {"filepath": "post/atm/180x360_aave/clim/30yr/{casename}_{season}_{start}_{end}_climo.nc", "climo_year_start": "1985", "climo_year_end": "2014", "seasons": ATM_CLIMO_SEASONS},
         # Ocean masked climatology (sst, sss, mld; seasons: ANN, JFM, JAS)
@@ -164,6 +166,7 @@ GROUP_VARIABLES = {
         {"filepath": "post/atm/180x360_aave/ts/monthly/5yr/TS_{start}_{end}.nc", "start": "185001", "end": "202412"},
         {"filepath": "post/atm/180x360_aave/ts/monthly/5yr/TREFHT_{start}_{end}.nc", "start": "185001", "end": "202412"},
         {"filepath": "post/atm/180x360_aave/ts/monthly/5yr/OCNFRAC_{start}_{end}.nc", "start": "185001", "end": "202412"},
+        {"filepath": "post/atm/180x360_aave/ts/monthly/5yr/U_{start}_{end}.nc", "start": "198501", "end": "201412"},
         # Atmosphere seasonal climatology (ANN, DJF, MAM, JJA, SON)
         {"filepath": "post/atm/180x360_aave/clim/30yr/{casename}_{season}_{start}_{end}_climo.nc", "climo_year_start": "1985", "climo_year_end": "2014", "seasons": ATM_CLIMO_SEASONS},
         # Ocean masked climatology (sst, sss, mld; seasons: ANN, JFM, JAS)
